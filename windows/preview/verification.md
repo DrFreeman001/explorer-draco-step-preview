@@ -177,3 +177,9 @@ Miniatures produites par l'auxiliaire, sur des copies de fichiers de la collecti
 Dans le vrai Explorer après réinscription et redémarrage : miniatures STL, OBJ et 3MF dessinées par l'extension. La miniature STL de PowerToys (`HKCU\Software\Classes\.stl\shellex`) est remplacée et gardée dans le manifeste ; celle de Windows pour 3MF (HKLM) est masquée par une valeur utilisateur. **Volet d'aperçu :** reste à Microsoft 3D Viewer (`ShellPreviewHandler3D.dll`, application du Store), qui passe avant les clés classiques ; sur le STL tronqué, il n'affiche qu'une barre verte.
 
 Correction en route : le retrait supprimait une clé entière dès qu'il retirait une de nos valeurs, y compris les autres valeurs qu'elle portait ; il ne supprime plus qu'une clé devenue vide. Et une valeur déjà identique à la nôtre n'est plus gardée comme « valeur antérieure » (cause des restes « prototype » du déménagement).
+
+## 14 novembre 2026 — installateur
+
+`windows/installer/build_installer.ps1` : Python 3.14.8 embarqué officiel (signature de la Python Software Foundation vérifiée), numpy, DracoPy, PySide6 Essentials allégé (modules Qml, Quick, Pdf et outils retirés), l'auxiliaire, la DLL et le lecteur STEP avec ses DLL. Contrôle intégré : le Python embarqué dessine une miniature avant la compilation de l'installateur. Résultat : 56 Mo, 214 Mo installés.
+
+Essai sur ce PC : inscription de développement retirée, installation silencieuse en 6 s dans `%LOCALAPPDATA%\Programs`, inscription pointant vers le dossier installé. Après redémarrage d'Explorer : miniatures STEP, STL et OBJ fournies par Windows (HRESULT 0), aperçu STEP en couleurs à l'écran, DLL chargée depuis le dossier installé. Désinstallation : CLSID retirés, miniature STL de PowerToys remise, plus aucun fichier. Réinstallé ensuite et gardé, à la demande de l'utilisateur.
