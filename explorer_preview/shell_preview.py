@@ -11,7 +11,7 @@ from PySide6.QtCore import Qt, QPointF, QTimer, Signal
 from PySide6.QtGui import QColor, QImage, QPainter, QPolygonF
 from PySide6.QtWidgets import QApplication, QWidget
 from explorer_preview import preview_rendering as gpu_rendering
-from explorer_preview import preview_temp, step_preview
+from explorer_preview import mesh_formats, preview_temp, step_preview
 
 MAX_INPUT = gpu_rendering.MAX_INPUT
 # Les modèles d'impression 3D ont Z vertical, comme dans les trancheurs.
@@ -22,18 +22,27 @@ DEFAULT_VIEW = (30., 20., 1.)
 
 
 def load_model(path: Path):
-    """Maillage complet du fichier, Draco ou STEP, reconnu par son contenu et non par son nom."""
+    """Maillage complet du fichier (Draco, STEP, STL, OBJ ou 3MF), reconnu par son contenu et non par son nom."""
     path = Path(path)
     size = path.stat().st_size
     with path.open('rb') as source:
-        head = source.read(64)
+        head = source.read(4096)
     if step_preview.is_step(head):
         if size > step_preview.MAX_INPUT:
             raise ValueError('Input exceeds preview limit')
         return step_preview.mesh_step(path, path.with_name('model.mesh'))
-    if not 0 < size <= MAX_INPUT:
-        raise ValueError('Input exceeds preview limit or is empty')
-    return gpu_rendering.decode_mesh(path.read_bytes())
+    if head.startswith(b'DRACO'):
+        if not 0 < size <= MAX_INPUT:
+            raise ValueError('Input exceeds preview limit or is empty')
+        return gpu_rendering.decode_mesh(path.read_bytes())
+    kind = mesh_formats.detect(head, size)
+    if kind is None:
+        if not 0 < size <= MAX_INPUT:
+            raise ValueError('Input exceeds preview limit or is empty')
+        return gpu_rendering.decode_mesh(path.read_bytes())
+    if size > mesh_formats.MAX_INPUT:
+        raise ValueError('Input exceeds preview limit')
+    return mesh_formats.LOADERS[kind](path.read_bytes())
 
 
 def prepare_mesh(data: bytes, face_limit: int = 12000, up: str = UP_AXIS):
