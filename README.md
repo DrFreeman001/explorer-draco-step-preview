@@ -39,7 +39,7 @@ Gardez le dossier en place tant que l'extension est installée : le registre poi
 
 ## Limites
 
-- Fichiers de 64 Mo au plus pour un Draco, 200 Mo pour un STEP ; 90 s et 3 Go de mémoire par aperçu.
+- Fichiers de 64 Mo au plus pour un Draco, 200 Mo pour un STEP, STL, OBJ ou 3MF ; 90 s et 3 Go de mémoire par aperçu.
 - Un seul aperçu ouvert à la fois ; une seconde fenêtre l'indique.
 - Le clavier ne fonctionne qu'après un clic dans le modèle (R pour réinitialiser la vue).
 - Un gros STEP met du temps : environ 50 s pour 142 Mo. Son maillage est gardé une heure au plus pour que miniature et aperçu ne le lisent pas deux fois.

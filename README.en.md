@@ -39,7 +39,7 @@ Keep the folder in place while the extension is installed: the registry points t
 
 ## Limits
 
-- At most 64 MB for a Draco file, 200 MB for a STEP file; 90 s and 3 GB of memory per preview.
+- At most 64 MB for a Draco file, 200 MB for a STEP, STL, OBJ or 3MF file; 90 s and 3 GB of memory per preview.
 - One open preview at a time; a second window says so.
 - The keyboard works only after clicking in the model (R resets the view).
 - Large STEP files are slow: about 50 s for 142 MB. The mesh is kept for at most one hour so the thumbnail and the preview do not read it twice.
