@@ -77,7 +77,7 @@ def test_stl_and_3mf_take_over_existing_handlers(monkeypatch):
     assert ('Software\\Classes\\.stl\\shellex\\{E357FCCD-A995-4576-B01F-234630154E96}',register.THUMB) in rows
     assert ('Software\\Classes\\.3mf\\shellex\\{8895B1C6-B41F-4C1C-A562-0D564250836F}',register.PREVIEW) in rows
     # Les deux gestionnaires étrangers sont remplacés ; STL, OBJ et 3MF sont aussi inscrits sur la clé de l'extension.
-    assert replace=={'Software\\Classes\\'+ext+'\\shellex\\'+handler for ext in ('.stl','.obj','.3mf')
+    assert replace=={'Software\\Classes\\'+ext+'\\shellex\\'+handler for ext in sorted(register.EXTENSION_KEY)
                      for handler in ('{E357FCCD-A995-4576-B01F-234630154E96}','{8895B1C6-B41F-4C1C-A562-0D564250836F}')}
     for ext in ('.stl','.obj','.3mf'):
         assert ('Software\\Classes\\SystemFileAssociations\\'+ext+'\\shellex\\{8895B1C6-B41F-4C1C-A562-0D564250836F}',register.PREVIEW) in rows
