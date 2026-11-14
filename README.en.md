@@ -37,7 +37,7 @@ Uninstall:
 .venv\Scripts\python windows\preview\register.py uninstall
 ```
 
-To build the installer (Inno Setup 6 required): `.\windows\installeruild_installer.ps1`.
+To build the installer (Inno Setup 6 required): `.\windows\installer\build_installer.ps1`.
 
 Keep the folder in place while the extension is installed: the registry points to it, and `windows\preview\build\registration.json` is used for an exact uninstall.
 

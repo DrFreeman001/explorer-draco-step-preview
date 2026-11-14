@@ -37,7 +37,7 @@ Retrait :
 .venv\Scripts\python windows\preview\register.py uninstall
 ```
 
-Pour fabriquer l'installateur (Inno Setup 6 nécessaire) : `.\windows\installeruild_installer.ps1`.
+Pour fabriquer l'installateur (Inno Setup 6 nécessaire) : `.\windows\installer\build_installer.ps1`.
 
 Gardez le dossier en place tant que l'extension est installée : le registre pointe vers lui, et `windows\preview\build\registration.json` sert au retrait exact.
 
