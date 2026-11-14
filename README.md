@@ -2,10 +2,11 @@
 
 *[English version](README.en.md)*
 
-Miniatures et aperçu 3D des fichiers **Draco** (`.drc`) et **STEP** (`.step`, `.stp`) directement dans l'Explorateur Windows : icônes du dossier et volet d'aperçu (Alt+P), où le modèle se tourne à la souris.
+Miniatures et aperçu 3D des fichiers **Draco** (`.drc`), **STEP** (`.step`, `.stp`), **STL**, **OBJ** et **3MF** directement dans l'Explorateur Windows : icônes du dossier et volet d'aperçu (Alt+P), où le modèle se tourne à la souris.
 
 - **Draco** : toutes les faces sont dessinées par OpenGL, Z vers le haut comme dans un trancheur.
 - **STEP** : lecture par OpenCascade, avec les couleurs des pièces et des faces ; les vitrages (polycarbonate, verre…) sont translucides. Testé jusqu'à un assemblage de 142 Mo (Rat Rig V-Core 4.1, 790 pièces).
+- **STL, OBJ, 3MF** : couleurs des faces (STL binaires VisCAM et Magics), des sommets (OBJ) et des matériaux (3MF) ; STL texte ou binaire, même tronqués ; projets 3MF à plusieurs pièces. Remplace les miniatures STL de PowerToys et le gestionnaire 3MF de Windows, remis en place au retrait.
 - **Isolé** : chaque aperçu tourne dans un processus séparé, à faible intégrité, limité en mémoire et en temps. Un fichier piégé ou trop gros ne peut pas bloquer l'Explorateur.
 - **Réversible** : installation par utilisateur, sans droits d'administrateur. Le programme d'ouverture par défaut n'est jamais modifié, et le retrait remet le registre exactement comme avant.
 
@@ -42,6 +43,7 @@ Gardez le dossier en place tant que l'extension est installée : le registre poi
 - Un seul aperçu ouvert à la fois ; une seconde fenêtre l'indique.
 - Le clavier ne fonctionne qu'après un clic dans le modèle (R pour réinitialiser la vue).
 - Un gros STEP met du temps : environ 50 s pour 142 Mo. Son maillage est gardé une heure au plus pour que miniature et aperçu ne le lisent pas deux fois.
+- Si « 3D Viewer » de Microsoft est installé, c'est lui qui occupe le volet d'aperçu des STL, OBJ et 3MF : une application du Store passe avant les réglages du registre. Les miniatures restent les nôtres.
 - Les miniatures déjà en cache ne sont pas refaites : Windows les garde jusqu'à ce que le fichier change ou que le cache soit vidé (Nettoyage de disque → Miniatures).
 
 Détails techniques : [windows/preview/README.md](windows/preview/README.md). Mesures et essais : [windows/preview/verification.md](windows/preview/verification.md).

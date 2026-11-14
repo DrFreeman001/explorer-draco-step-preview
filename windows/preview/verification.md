@@ -164,3 +164,16 @@ La visionneuse quitte le dépôt dracoconv pour celui-ci (paquet Python `explore
 - Environnement neuf (`requirements-tested.txt`), OpenCascade déplacé, extension recompilée sur place : suite de tests réussie, `probe.exe` réussi.
 - Ancienne inscription retirée, nouvelle posée. **Piège rencontré :** le retrait de l'ancienne a remis des valeurs d'une inscription plus ancienne encore (libellés « prototype », chemin de l'ancien dossier) que son manifeste avait gardées comme valeurs antérieures. Ces restes ont été retirés un par un, seulement s'ils étaient reconnaissables comme les nôtres ; l'inscription neuve a tenu une minute sous surveillance.
 - Après redémarrage d'Explorer : miniature d'un STEP neuf fournie par Windows, et le volet d'aperçu de la carte EBB42 s'affiche en couleurs ; `prevhost.exe` charge la DLL du nouveau dossier.
+
+## 14 novembre 2026 — STL, OBJ et 3MF
+
+Lecteurs maison (`explorer_preview/mesh_formats.py`), sans dépendance nouvelle. Inspiration fonctionnelle : la visionneuse « Papa's Best STL Viewer » (couleurs des STL binaires, fichiers imparfaits) ; aucun code repris, sa licence n'étant pas publiée.
+
+Miniatures produites par l'auxiliaire, sur des copies de fichiers de la collection :
+- STL netfabb de 21,9 Mo dont l'en-tête annonce 879 161 triangles pour 459 312 présents (fichier tronqué) : lu, 0,4 s. Avant : icône générique « STL », PowerToys ne le lisait pas.
+- OBJ de 7,5 Mo et de 71 Mo : 1,0 s et 2,8 s.
+- 3MF : petit projet, 1 s ; projet de 70 Mo à 4,1 millions de triangles : 17 s par analyse XML complète, 5,3 s avec la lecture directe des blocs de maillage.
+
+Dans le vrai Explorer après réinscription et redémarrage : miniatures STL, OBJ et 3MF dessinées par l'extension. La miniature STL de PowerToys (`HKCU\Software\Classes\.stl\shellex`) est remplacée et gardée dans le manifeste ; celle de Windows pour 3MF (HKLM) est masquée par une valeur utilisateur. **Volet d'aperçu :** reste à Microsoft 3D Viewer (`ShellPreviewHandler3D.dll`, application du Store), qui passe avant les clés classiques ; sur le STL tronqué, il n'affiche qu'une barre verte.
+
+Correction en route : le retrait supprimait une clé entière dès qu'il retirait une de nos valeurs, y compris les autres valeurs qu'elle portait ; il ne supprime plus qu'une clé devenue vide. Et une valeur déjà identique à la nôtre n'est plus gardée comme « valeur antérieure » (cause des restes « prototype » du déménagement).
