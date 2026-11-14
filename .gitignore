@@ -5,3 +5,5 @@ __pycache__/
 .pytest_cache/
 *.part
 report.xml
+build/
+dist/

@@ -14,7 +14,9 @@ Projet né à côté de [dracoconv](https://github.com/DrFreeman001/dracoconv), 
 
 ## Installation
 
-Windows 10 ou 11 x64, Python 3.11 ou plus récent, outils de compilation Microsoft C++ (Visual Studio Build Tools, charge « Développement Desktop en C++ »). Depuis PowerShell :
+**Le plus simple :** téléchargez `explorer-draco-step-preview-<version>-setup.exe` dans les [versions publiées](https://github.com/DrFreeman001/explorer-draco-step-preview/releases/latest) et lancez-le (environ 56 Mo, rien d'autre à installer : Python et OpenCascade sont inclus). Installation pour vous seul, sans droits d'administrateur ; désinstallation depuis « Applications installées », qui remet le registre comme avant. L'installateur n'étant pas signé, Windows SmartScreen peut afficher « éditeur inconnu » : « Informations complémentaires », puis « Exécuter quand même ».
+
+**Depuis les sources :** Windows 10 ou 11 x64, Python 3.11 ou plus récent, outils de compilation Microsoft C++ (Visual Studio Build Tools, charge « Développement Desktop en C++ »). Depuis PowerShell :
 
 ```powershell
 git clone https://github.com/DrFreeman001/explorer-draco-step-preview.git
@@ -34,6 +36,8 @@ Retrait :
 ```powershell
 .venv\Scripts\python windows\preview\register.py uninstall
 ```
+
+Pour fabriquer l'installateur (Inno Setup 6 nécessaire) : `.\windows\installeruild_installer.ps1`.
 
 Gardez le dossier en place tant que l'extension est installée : le registre pointe vers lui, et `windows\preview\build\registration.json` sert au retrait exact.
 
