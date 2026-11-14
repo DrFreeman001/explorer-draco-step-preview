@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "explorer-draco-step-preview"
+version = "0.1.0"
+description = "Miniatures et aperçu 3D des fichiers Draco (.drc) et STEP (.step, .stp) dans l'Explorateur Windows"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+authors = [{ name = "DrFreeman001" }]
+keywords = ["draco", "step", "windows", "explorer", "preview-handler", "thumbnail"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Win32 (MS Windows)",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.0",
+    "DracoPy>=2.0",
+    "PySide6>=6.8",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-qt"]
+
+[project.urls]
+Homepage = "https://github.com/DrFreeman001/explorer-draco-step-preview"
+Issues = "https://github.com/DrFreeman001/explorer-draco-step-preview/issues"
+
+[tool.setuptools.packages.find]
+include = ["explorer_preview*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
