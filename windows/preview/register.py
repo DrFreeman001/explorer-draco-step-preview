@@ -58,12 +58,13 @@ def uninstall_values(state):
 # Clé d'inscription par extension. Pour STEP, SystemFileAssociations : la clé .step de l'utilisateur appartient
 # au trancheur associé, qui la réécrit et y efface les sous-clés shellex (constaté le 13 novembre 2026).
 EXTENSIONS={'.drc':'.drc','.step':'SystemFileAssociations\\.step','.stp':'SystemFileAssociations\\.stp',
-            '.stl':'SystemFileAssociations\\.stl','.obj':'SystemFileAssociations\\.obj','.3mf':'SystemFileAssociations\\.3mf'}
+            '.stl':'SystemFileAssociations\\.stl','.obj':'SystemFileAssociations\\.obj','.3mf':'SystemFileAssociations\\.3mf',
+            **{ext:'SystemFileAssociations\\'+ext for ext in ('.ply','.glb','.gltf','.amf')}}
 # Extensions dont on prend la place des gestionnaires existants, avec l'accord de l'utilisateur (14 novembre 2026) :
 # miniatures STL de PowerToys (icône générique, pas d'aperçu) et gestionnaire 3MF de Windows (image du trancheur seulement).
 # La valeur remplacée est gardée dans le manifeste et remise au retrait.
 TAKEOVER={'.stl','.3mf'}
-EXTENSION_KEY={'.stl','.obj','.3mf'}
+EXTENSION_KEY={'.stl','.obj','.3mf','.ply','.glb','.gltf','.amf'}
 
 
 def file_classes(ext):

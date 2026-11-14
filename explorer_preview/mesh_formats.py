@@ -66,9 +66,14 @@ def _ascii_stl(head: bytes) -> bool:
 
 
 def detect(head: bytes, size: int) -> str | None:
-    """'stl', '3mf' ou 'obj' d'après les premiers octets et la taille ; None si le contenu n'est aucun des trois."""
+    """'stl', '3mf', 'obj', 'ply', 'gltf' ou 'amf' d'après les premiers octets et la taille ; None sinon."""
+    from explorer_preview import scene_formats
+
     if head.startswith(b"PK\x03\x04"):
-        return "3mf"
+        return "3mf"  # 3MF, ou AMF compressé : tranché à la lecture (load_zip)
+    kind = scene_formats.detect(head)
+    if kind:
+        return kind
     if _ascii_stl(head) or binary_stl_count(head, size):
         return "stl"
     if re.search(rb"(^|\n)\s*(v|f|o|g|mtllib|usemtl)\s", head):
@@ -363,4 +368,19 @@ def load_3mf(data: bytes) -> DisplayMesh:
     return mesh
 
 
-LOADERS = {"stl": load_stl, "obj": load_obj, "3mf": load_3mf}
+def load_zip(data: bytes) -> DisplayMesh:
+    from explorer_preview import scene_formats
+
+    return scene_formats.load_amf(data) if scene_formats.zip_kind(data) == "amf" else load_3mf(data)
+
+
+def _scene(name):
+    def load(data: bytes) -> DisplayMesh:
+        from explorer_preview import scene_formats
+
+        return getattr(scene_formats, name)(data)
+    return load
+
+
+LOADERS = {"stl": load_stl, "obj": load_obj, "3mf": load_zip,
+           "ply": _scene("load_ply"), "gltf": _scene("load_gltf"), "amf": _scene("load_amf")}
