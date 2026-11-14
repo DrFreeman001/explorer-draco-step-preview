@@ -23,6 +23,8 @@ class DisplayMesh:
     simplified: bool = False
     colors: np.ndarray | None = None  # uint8 (sommets, 3 ou 4), sRGB et opacité ; None : couleur par défaut
     opaque_faces: int | None = None  # les faces suivantes sont translucides ; None : toutes opaques
+    size: tuple[float, float, float] | None = None  # encombrement X, Y, Z dans l'unité du fichier
+    unit_mm: float = 1.0  # millimètres par unité du fichier (1 pour STL, OBJ, Draco, STEP)
 
 
 def prepare_arrays(points, faces):
@@ -44,7 +46,8 @@ def prepare_arrays(points, faces):
     center = (low + high) / 2
     for start in range(0, len(points), 262144):
         normalized[start:start+262144] = (points[start:start+262144] - center) / scale
-    return DisplayMesh(normalized, np.ascontiguousarray(faces, dtype=np.uint32))
+    return DisplayMesh(normalized, np.ascontiguousarray(faces, dtype=np.uint32),
+                       size=tuple(float(v) for v in high - low))
 
 
 def decode_mesh(data):

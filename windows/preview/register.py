@@ -103,7 +103,19 @@ def values(replace=None):
                 path='Software\\Classes\\'+file_class+'\\shellex\\'+handler
                 rows.append((path,'',clsid))
                 replace.add(path)
+    # Clic droit sur un dossier : refaire ses miniatures 3D (menu classique, « Afficher plus d'options » sous Windows 11).
+    verb='Software\\Classes\\Directory\\shell\\ExplorerDracoStepPreview.refresh'
+    tool=str(HERE/'build/refresh_thumbnails.exe')
+    rows += [(verb,'',REFRESH_LABEL[_french()]),(verb,'Icon',tool),(verb+'\\command','','"'+tool+'" "%1"')]
     return rows
+
+
+REFRESH_LABEL={True:'Refaire les miniatures 3D',False:'Refresh 3D thumbnails'}
+
+
+def _french():
+    try: return ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0x3FF == 0x0C
+    except (AttributeError,OSError): return False
 
 
 def main():

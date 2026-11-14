@@ -16,7 +16,38 @@ from explorer_preview import mesh_formats, preview_temp, step_preview
 MAX_INPUT = gpu_rendering.MAX_INPUT
 # Les modèles d'impression 3D ont Z vertical, comme dans les trancheurs.
 UP_AXIS = 'z'
-SIMPLIFIED = 'Affichage simplifié · '
+def _french() -> bool:
+    """Textes en français si l'interface de Windows l'est ; en anglais sinon."""
+    try:
+        return ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0x3FF == 0x0C
+    except (AttributeError, OSError):
+        return False
+
+
+FRENCH = _french()
+TEXTS = {
+    True: {'loading': 'Chargement…', 'simplified': 'Affichage simplifié · ',
+           'hint': 'Glisser : rotation · Molette : zoom · R : réinitialiser', 'triangles': 'triangles'},
+    False: {'loading': 'Loading…', 'simplified': 'Simplified drawing · ',
+            'hint': 'Drag: rotate · Wheel: zoom · R: reset', 'triangles': 'triangles'},
+}
+TEXT = TEXTS[FRENCH]
+SIMPLIFIED = TEXT['simplified']
+
+
+def describe(mesh, french: bool = FRENCH) -> str:
+    """« 120,0 × 80,0 × 45,2 mm · 459 312 triangles » : encombrement X × Y × Z (Z vertical) et nombre de faces."""
+    def number(value: float, decimals: int) -> str:
+        text = f'{value:,.{decimals}f}'
+        return text.replace(',', '\u202f').replace('.', ',') if french else text
+
+    parts = []
+    if mesh.size is not None:
+        size = [v * mesh.unit_mm for v in mesh.size]
+        decimals = 2 if max(size) < 10 else 1
+        parts.append(' × '.join(number(v, decimals) for v in size) + ' mm')
+    parts.append(number(len(mesh.faces), 0) + ' ' + TEXTS[french]['triangles'])
+    return ' · '.join(parts)
 # Vue de trois quarts, légèrement par-dessus (lacet, tangage, zoom).
 DEFAULT_VIEW = (30., 20., 1.)
 
@@ -113,7 +144,8 @@ class Preview(QWidget):
         super().__init__()
         self.triangles = None
         self.renderer = None
-        self.message = 'Chargement…'
+        self.message = TEXT['loading']
+        self.info = ''
         self.yaw, self.pitch, self.zoom = DEFAULT_VIEW
         self.drag = None
         self.parent_hwnd = parent_hwnd
@@ -148,6 +180,7 @@ class Preview(QWidget):
     def ready(self, mesh, message):
         # Le contexte OpenGL se crée ici, sur le fil de l'interface.
         if mesh is not None:
+            self.info = describe(mesh)
             try:
                 self.renderer = gpu_rendering.MeshRenderer(mesh)
                 QApplication.instance().aboutToQuit.connect(self.renderer.close)
@@ -194,7 +227,7 @@ class Preview(QWidget):
         else:
             painter.fillRect(self.rect(), QColor('#eef1f5'))
         painter.setPen(QColor('#26384c'))
-        painter.drawText(self.rect().adjusted(10,10,-10,-10), Qt.AlignmentFlag.AlignBottom | Qt.TextFlag.TextWordWrap, self.message + ('Glisser : rotation · Molette : zoom · R : réinitialiser' if self.has_model() else ''))
+        painter.drawText(self.rect().adjusted(10,10,-10,-10), Qt.AlignmentFlag.AlignBottom | Qt.TextFlag.TextWordWrap, (self.info + '\n' if self.info else '') + self.message + (TEXT['hint'] if self.has_model() else ''))
 
     def mousePressEvent(self, event):
         self.drag = event.position()

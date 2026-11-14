@@ -31,6 +31,8 @@ if(-not $StepOnly){
  if($LASTEXITCODE){throw 'Probe compile failed'}
  & $cl /nologo /utf-8 /EHsc /std:c++17 /W4 /DUNICODE /D_UNICODE /LD "$PSScriptRoot/bridge.cpp" /Fo"$build/bridge.obj" /Fe"$build/DracoPreview.dll" /link /DEF:"$PSScriptRoot/bridge.def" ole32.lib shell32.lib shlwapi.lib gdi32.lib user32.lib uuid.lib windowscodecs.lib advapi32.lib
  if($LASTEXITCODE){throw 'Bridge compile failed'}
+ & $cl /nologo /utf-8 /EHsc /std:c++17 /W4 /DUNICODE /D_UNICODE "$PSScriptRoot/refresh_thumbnails.cpp" /Fo"$build/refresh_thumbnails.obj" /Fe"$build/refresh_thumbnails.exe" /link ole32.lib shell32.lib
+ if($LASTEXITCODE){throw 'refresh_thumbnails compile failed'}
  foreach($name in @('preview_probe','cache_probe')) {
   & $cl /nologo /utf-8 /EHsc /std:c++17 "$PSScriptRoot/probes/$name.cpp" /Fo"$build/$name.obj" /Fe"$build/$name.exe" /link ole32.lib shell32.lib shlwapi.lib user32.lib uuid.lib
   if($LASTEXITCODE){throw "$name compile failed"}

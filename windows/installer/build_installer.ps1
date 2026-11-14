@@ -8,7 +8,7 @@ $build = "$root/windows/preview/build"
 $stage = "$root/build/installer/stage"
 $cache = "$root/build/installer/cache"
 $version = (& "$root/.venv/Scripts/python.exe" -c "import explorer_preview; print(explorer_preview.__version__)").Trim()
-foreach ($need in "$build/DracoPreview.dll", "$build/step/step_mesh.exe") {
+foreach ($need in "$build/DracoPreview.dll", "$build/refresh_thumbnails.exe", "$build/step/step_mesh.exe") {
     if (-not (Test-Path $need)) { throw "Manquant : $need (lancer windows/preview/build.ps1 avec OpenCascade)" }
 }
 if (Test-Path $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
@@ -45,7 +45,7 @@ Copy-Item -Recurse "$root/explorer_preview" "$stage/explorer_preview"
 Get-ChildItem "$stage/explorer_preview" -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
 New-Item -ItemType Directory -Force "$stage/windows/preview/build" | Out-Null
 Copy-Item "$root/windows/preview/register.py", "$PSScriptRoot/configure_installed.py" "$stage/windows/preview/"
-Copy-Item "$build/DracoPreview.dll" "$stage/windows/preview/build/"
+Copy-Item "$build/DracoPreview.dll", "$build/refresh_thumbnails.exe" "$stage/windows/preview/build/"
 Copy-Item -Recurse "$build/step" "$stage/windows/preview/build/step"
 Get-ChildItem "$stage/windows/preview/build/step" -File | Where-Object { $_.Extension -in '.lib', '.exp', '.obj' } | Remove-Item -Force
 Copy-Item "$root/LICENSE", "$root/THIRD-PARTY-NOTICES.md", "$root/README.md" $stage

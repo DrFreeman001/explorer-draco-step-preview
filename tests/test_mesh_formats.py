@@ -160,3 +160,16 @@ def test_stl_cut_mid_triangle_and_garbage():
     assert mf.detect(cut[:4096], len(cut)) == "stl" and len(mf.load_stl(cut).faces) == 1
     garbage = b"\x00" * 80 + struct.pack("<I", 9) + b"\xff" * 120
     assert mf.detect(garbage, len(garbage)) is None
+
+
+def test_size_and_units_for_the_description():
+    from explorer_preview import shell_preview
+
+    mesh = mf.load_stl(binary_stl())
+    assert mesh.size == (2.0, 4.0, 8.0) and mesh.unit_mm == 1.0
+    assert shell_preview.describe(mesh, french=False) == "2.00 × 4.00 × 8.00 mm · 2 triangles"
+    assert shell_preview.describe(mesh, french=True) == "2,00 × 4,00 × 8,00 mm · 2 triangles"
+    inches = three_mf({"3D/3dmodel.model": ROOT.replace('unit="millimeter"', 'unit="inch"'), "3D/Objects/part.model": PART})
+    mesh = mf.load_3mf(inches)
+    assert mesh.unit_mm == 25.4
+    assert shell_preview.describe(mesh, french=False) == "2,565.4 × 254.0 × 762.0 mm · 3 triangles"

@@ -12,6 +12,19 @@ static HMODULE module;
 static std::atomic<long> objects{0};
 static const CLSID thumbId = {0x47e7a10b, 0x10e8, 0x4648, {0xa3, 0x85, 0x84, 0x9c, 0xba, 0xb9, 0x49, 0xf0}};
 static const CLSID previewId = {0x06b7d1b9, 0xcdef, 0x4966, {0x87, 0x02, 0x88, 0x80, 0xe7, 0xdd, 0xb1, 0xd9}};
+// Textes du volet d'aperçu, en français si l'interface de Windows l'est, en anglais sinon.
+static const wchar_t* text(int id) {
+    static const bool french = PRIMARYLANGID(GetUserDefaultUILanguage()) == LANG_FRENCH;
+    static const wchar_t* const fr[] = {L"Chargement…", L"Aperçu indisponible : chargement interrompu ou limite atteinte.",
+                                        L"Un autre aperçu 3D est déjà ouvert dans une autre fenêtre.",
+                                        L"Aperçu indisponible : impossible de lancer le processus."};
+    static const wchar_t* const en[] = {L"Loading…", L"Preview unavailable: loading interrupted or limit reached.",
+                                        L"Another 3D preview is already open in another window.",
+                                        L"Preview unavailable: cannot start the helper process."};
+    return (french ? fr : en)[id];
+}
+enum { TEXT_LOADING, TEXT_INTERRUPTED, TEXT_BUSY, TEXT_LAUNCH_FAILED };
+
 static HRESULT error() {
     return HRESULT_FROM_WIN32(GetLastError());
 }
@@ -110,7 +123,7 @@ class Handler : public IInitializeWithStream,
         if (GetFileAttributesW((dir + L"\\ready").c_str()) != INVALID_FILE_ATTRIBUTES) ready = true;
         if (WaitForSingleObject(process, 0) == WAIT_OBJECT_0 || (!ready && GetTickCount64() - started > 90000)) {
             stopHelper();
-            SetWindowTextW(window, L"Apercu indisponible : chargement interrompu ou limite atteinte.");
+            SetWindowTextW(window, text(TEXT_INTERRUPTED));
         }
     }
     void cleanup() {
@@ -383,18 +396,18 @@ public:
         cls.lpszClassName = L"DracoConvPreviewContainer";
         cls.hCursor = LoadCursorW(nullptr, IDC_ARROW);
         if (!RegisterClassW(&cls) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) return error();
-        window = CreateWindowExW(0, cls.lpszClassName, L"Chargement...",
+        window = CreateWindowExW(0, cls.lpszClassName, text(TEXT_LOADING),
                                  WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_TABSTOP, rect.left, rect.top,
                                  rect.right - rect.left, rect.bottom - rect.top, parent, nullptr, module, this);
         if (!window) return error();
         HRESULT hr = launch(L"--parent " + std::to_wstring((uintptr_t)window));
         if (hr == HRESULT_FROM_WIN32(ERROR_BUSY)) {
-            SetWindowTextW(window, L"Un autre apercu 3D est deja ouvert dans une autre fenetre.");
+            SetWindowTextW(window, text(TEXT_BUSY));
             return S_OK;
         }
         if (FAILED(hr)) {
             stopHelper();
-            SetWindowTextW(window, L"Apercu indisponible : impossible de lancer le processus.");
+            SetWindowTextW(window, text(TEXT_LAUNCH_FAILED));
         } else {
             started = GetTickCount64();
             ready = false;

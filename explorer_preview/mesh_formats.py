@@ -344,17 +344,23 @@ class _Package:
         self.colors.append(rgba)
 
 
+_UNITS_MM = {"micron": 0.001, "millimeter": 1.0, "centimeter": 10.0, "inch": 25.4, "foot": 304.8, "meter": 1000.0}
+
+
 def load_3mf(data: bytes) -> DisplayMesh:
     package = _Package(data)
     root = package.root()
     _, build = package.model(root)
+    unit = re.search(rb'<model[^>]*\sunit="([a-z]+)"', package.zip.open(package.names[root.lower()]).read(4096))
     if not build:
         raise ValueError("3MF build is empty")
     for path, object_id, matrix in build:
         package.place(path or root, object_id, matrix)
     if not package.triangles:
         raise ValueError("3MF has no triangles")
-    return _finish(np.concatenate(package.triangles), np.concatenate(package.colors))
+    mesh = _finish(np.concatenate(package.triangles), np.concatenate(package.colors))
+    mesh.unit_mm = _UNITS_MM.get(unit.group(1).decode() if unit else "millimeter", 1.0)
+    return mesh
 
 
 LOADERS = {"stl": load_stl, "obj": load_obj, "3mf": load_3mf}
