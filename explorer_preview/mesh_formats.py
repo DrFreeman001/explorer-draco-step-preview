@@ -8,6 +8,7 @@ OBJ, matériaux et groupes de couleurs des 3MF.
 from __future__ import annotations
 
 import io
+import json
 import re
 import struct
 import zipfile
@@ -34,7 +35,9 @@ class _Block:
         return self.data[self.begin:self.end + 7] if which == 0 else self.data[self.begin + 6:self.end]
 # Sommets « x y z » dans cet ordre, triangles « v1 v2 v3 » : vérifié par comptage, sinon analyse XML complète.
 _COORD = re.compile(rb'<vertex\s+x="([^"]*)"\s+y="([^"]*)"\s+z="([^"]*)"\s*/>')
-_CORNER = re.compile(rb'<triangle\s+v1="(\d+)"\s+v2="(\d+)"\s+v3="(\d+)"\s*/>')
+_CORNER = re.compile(rb'<triangle\s+v1="(\d+)"\s+v2="(\d+)"\s+v3="(\d+)"'
+                     rb'(?:\s+(?:paint_color|slic3rpe:mmu_segmentation)="([0-9A-Fa-f]*)")?\s*/>')
+_SLIC3R_PAINT = "{http://schemas.slic3r.org/3mf/2017/06}mmu_segmentation"
 
 
 def binary_stl_count(head: bytes, size: int) -> int:
@@ -219,6 +222,46 @@ class _Package:
         self.triangles: list[np.ndarray] = []
         self.colors: list[np.ndarray] = []
         self.faces = 0
+        self.filaments, self.extruders = self._slicer_colors()
+
+    def _slicer_colors(self):
+        """Projets Bambu Studio, OrcaSlicer et PrusaSlicer : couleurs des filaments et extrudeur de chaque objet et pièce.
+
+        Renvoie (couleurs RGBA par extrudeur, à partir de 1 ; {objet: (extrudeur, {pièce: extrudeur})}).
+        """
+        filaments: list[tuple[int, int, int, int]] = []
+        for name in ("metadata/project_settings.config", "metadata/slic3r_pe.config"):
+            if name not in self.names:
+                continue
+            text = self._read(self.names[name]).decode("utf-8", "replace")
+            try:
+                values = json.loads(text).get("filament_colour") or []
+            except ValueError:  # PrusaSlicer : lignes « ; filament_colour = #RRGGBB;#RRGGBB »
+                found = re.search(r"filament_colour\s*=\s*([^\r\n]*)", text)
+                values = found.group(1).split(";") if found else []
+            filaments = [c for c in (_rgba(v.strip()[:9]) for v in values) if c]
+            break
+        extruders: dict[str, tuple[int | None, dict[str, int]]] = {}
+        for name in ("metadata/model_settings.config", "metadata/slic3r_pe_model.config"):
+            if name not in self.names:
+                continue
+            try:
+                root = ElementTree.fromstring(self._read(self.names[name]))
+            except ElementTree.ParseError:
+                break
+            for obj in root.iter("object"):
+                own = _extruder(obj)
+                parts = {p.get("id"): e for p in obj.iter("part") if (e := _extruder(p))}
+                parts.update({v.get("firstid"): e for v in obj.iter("volume") if (e := _extruder(v))})
+                extruders[obj.get("id")] = (own, parts)
+            break
+        return filaments, extruders
+
+    def filament(self, extruder: int | None) -> tuple[int, int, int, int] | None:
+        if not self.filaments:
+            return None
+        index = (extruder or 1) - 1
+        return self.filaments[index] if 0 <= index < len(self.filaments) else self.filaments[0]
 
     def root(self) -> str:
         rels = self.names.get("_rels/.rels")
@@ -260,10 +303,11 @@ class _Package:
                 return match.group(0)
             try:
                 points = np.array(coords).astype(np.float64).reshape(-1, 3)
-                ids = np.array(corners).astype(np.int64).reshape(-1, 3)
+                ids = np.array([c[:3] for c in corners]).astype(np.int64).reshape(-1, 3)
             except ValueError:
                 return match.group(0)
-            fast.append((points, ids))
+            paint = [(row, c[3].decode()) for row, c in enumerate(corners) if c[3]] if b"paint" in block or b"mmu_" in block else []
+            fast.append((points, ids, paint))
             return b'<mesh dcfast="%d"/>' % (len(fast) - 1)
 
         pieces, start = [], 0
@@ -288,12 +332,13 @@ class _Package:
                     vertices, triangles = [], []
                 continue
             if tag == _CORE + "mesh" and element.get("dcfast") is not None and current is not None:
-                current["vertices"], current["ids"] = fast[int(element.get("dcfast"))]
+                current["vertices"], current["ids"], current["paint"] = fast[int(element.get("dcfast"))]
             elif tag == _CORE + "vertex":
                 vertices.append((float(element.get("x")), float(element.get("y")), float(element.get("z"))))
             elif tag == _CORE + "triangle":
                 triangles.append((int(element.get("v1")), int(element.get("v2")), int(element.get("v3")),
-                                  element.get("pid"), element.get("p1")))
+                                  element.get("pid"), element.get("p1"),
+                                  element.get("paint_color") or element.get(_SLIC3R_PAINT)))
             elif tag == _CORE + "component" and current is not None:
                 current["components"].append((element.get(_PROD_PATH), element.get("objectid"),
                                               _transform(element.get("transform"))))
@@ -301,7 +346,8 @@ class _Package:
                 if triangles:
                     current["vertices"] = np.asarray(vertices, np.float64)
                     current["ids"] = np.asarray([t[:3] for t in triangles], np.int64)
-                    current["props"] = [t[3:] for t in triangles]
+                    current["props"] = [t[3:5] for t in triangles]
+                    current["paint"] = [(row, t[5]) for row, t in enumerate(triangles) if t[5]]
                 objects[element.get("id")] = current
                 current = None
             elif tag == _CORE + "basematerials":
@@ -314,15 +360,20 @@ class _Package:
                 element.clear()
         return {"objects": objects, "properties": properties}, build
 
-    def place(self, path: str, object_id: str, matrix: np.ndarray, depth: int = 0) -> None:
+    def place(self, path: str, object_id: str, matrix: np.ndarray, depth: int = 0,
+              extruder: int | None = None, top: str | None = None) -> None:
         if depth > 16:
             raise ValueError("3MF components nest too deeply")
         model, _ = self.model(path)
         item = model["objects"].get(object_id)
         if item is None:
             raise ValueError("3MF object is missing: " + str(object_id))
+        if top is None:  # objet du plateau : son extrudeur vaut pour ses pièces sans réglage propre
+            top = object_id
+            extruder = self.extruders.get(object_id, (None, {}))[0]
+        parts = self.extruders.get(top, (None, {}))[1]
         for sub_path, sub_id, sub_matrix in item["components"]:
-            self.place(sub_path or path, sub_id, sub_matrix @ matrix, depth + 1)
+            self.place(sub_path or path, sub_id, sub_matrix @ matrix, depth + 1, parts.get(sub_id) or extruder, top)
         if "ids" not in item or not len(item["ids"]):
             return
         points = item["vertices"]
@@ -341,12 +392,82 @@ class _Package:
                 return group[int(index)]
             return DEFAULT_RGBA
 
-        rgba = np.tile(np.asarray(color(item["pid"], item["pindex"]), np.uint8), (len(ids), 1))
+        base = color(item["pid"], item["pindex"])
+        if base == DEFAULT_RGBA:  # pas de matériau 3MF : couleur du filament de l'extrudeur, si le trancheur la donne
+            base = self.filament(parts.get(object_id) or extruder) or DEFAULT_RGBA
+        rgba = np.tile(np.asarray(base, np.uint8), (len(ids), 1))
         for row, (pid, p1) in enumerate(item.get("props") or ()):
             if pid is not None or p1 is not None:
                 rgba[row] = color(pid or item["pid"], p1 if p1 is not None else item["pindex"])
+        if self.filaments:
+            # Peinture multicolore du trancheur : couleur dominante de chaque triangle peint.
+            for row, code in item.get("paint") or ():
+                state = paint_state(code)
+                if state:
+                    rgba[row] = self.filament(state)
         self.triangles.append(points[ids])
         self.colors.append(rgba)
+
+
+def _extruder(element) -> int | None:
+    """Extrudeur d'un objet ou d'une pièce dans la configuration du trancheur ; None ou 0 : hérité."""
+    for meta in element.findall("metadata"):
+        if meta.get("key") == "extruder" or meta.get("type") == "volume" and meta.get("key") == "extruder":
+            try:
+                return int(meta.get("value")) or None
+            except (TypeError, ValueError):
+                return None
+    return None
+
+
+_PAINT_CACHE: dict[str, int] = {}
+
+
+def paint_state(code: str) -> int:
+    """État dominant d'un triangle peint (0 : non peint, n : extrudeur n), d'après le codage des trancheurs.
+
+    Codage PrusaSlicer, repris par Bambu Studio et OrcaSlicer : chiffres hexadécimaux lus depuis la fin, bits de
+    poids faible d'abord. Par nœud : 2 bits de côtés découpés ; 0 = feuille suivie de 2 bits d'état (3 = 3 + 4 bits),
+    sinon 2 bits de côté particulier puis les sous-triangles. Chaque sous-triangle compte pour une part égale.
+    """
+    cached = _PAINT_CACHE.get(code)
+    if cached is not None:
+        return cached
+    try:
+        bits = [(int(c, 16) >> k) & 1 for c in reversed(code) for k in range(4)]
+    except ValueError:
+        return 0
+    position, weights = 0, {}
+
+    def read(count: int) -> int:
+        nonlocal position
+        if position + count > len(bits):
+            raise ValueError("truncated paint code")
+        value = sum(bits[position + k] << k for k in range(count))
+        position += count
+        return value
+
+    stack = [1.0]
+    try:
+        while stack:
+            weight = stack.pop()
+            split = read(2)
+            if split == 0:
+                state = read(2)
+                if state == 3:
+                    state += read(4)
+                weights[state] = weights.get(state, 0.0) + weight
+            else:
+                read(2)
+                stack.extend([weight / (split + 1)] * (split + 1))
+            if len(weights) > 64 or len(stack) > 4096:
+                break
+    except ValueError:
+        pass
+    state = max(weights, key=weights.get) if weights else 0
+    if len(_PAINT_CACHE) < 65536:
+        _PAINT_CACHE[code] = state
+    return state
 
 
 _UNITS_MM = {"micron": 0.001, "millimeter": 1.0, "centimeter": 10.0, "inch": 25.4, "foot": 304.8, "meter": 1000.0}

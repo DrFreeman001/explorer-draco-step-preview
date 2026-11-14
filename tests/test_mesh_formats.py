@@ -173,3 +173,32 @@ def test_size_and_units_for_the_description():
     mesh = mf.load_3mf(inches)
     assert mesh.unit_mm == 25.4
     assert shell_preview.describe(mesh, french=False) == "2,565.4 × 254.0 × 762.0 mm · 3 triangles"
+
+
+def test_paint_codes_from_slicers():
+    assert [mf.paint_state(c) for c in ("4", "8", "0C", "1C", "", "zz")] == [1, 2, 3, 4, 0, 0]
+
+
+BAMBU_ROOT = f"""<?xml version="1.0"?>
+<model xmlns="{CORE}" xmlns:p="{PROD}" unit="millimeter"><resources>
+ <object id="2" type="model"><components><component p:path="/3D/Objects/part.model" objectid="7"/></components></object>
+ <object id="3" type="model"><components><component p:path="/3D/Objects/part.model" objectid="7" transform="1 0 0 0 1 0 0 0 1 5 0 0"/></components></object>
+</resources><build><item objectid="2"/><item objectid="3"/></build></model>"""
+BAMBU_PART = f"""<?xml version="1.0"?>
+<model xmlns="{CORE}"><resources><object id="7"><mesh>
+ <vertices><vertex x="0" y="0" z="0"/><vertex x="1" y="0" z="0"/><vertex x="0" y="1" z="0"/></vertices>
+ <triangles><triangle v1="0" v2="1" v3="2"/><triangle v1="0" v2="2" v3="1" paint_color="8"/></triangles></mesh></object></resources><build/></model>"""
+BAMBU_SETTINGS = """<?xml version="1.0"?><config>
+ <object id="2"><metadata key="extruder" value="3"/><part id="7"><metadata key="extruder" value="0"/></part></object>
+ <object id="3"><metadata key="extruder" value="1"/><part id="7"><metadata key="extruder" value="2"/></part></object>
+</config>"""
+
+
+def test_bambu_filament_colors_by_object_part_and_paint():
+    data = three_mf({"3D/3dmodel.model": BAMBU_ROOT, "3D/Objects/part.model": BAMBU_PART,
+                     "Metadata/project_settings.config": '{"filament_colour": ["#FF0000", "#00FF00", "#0000FF"]}',
+                     "Metadata/model_settings.config": BAMBU_SETTINGS})
+    mesh = mf.load_3mf(data)
+    per_face = mesh.colors[::3].tolist()
+    # Objet 2 : extrudeur 3 (bleu), sa pièce hérite ; objet 3 : pièce sur l'extrudeur 2 (vert) ; peinture : extrudeur 2.
+    assert per_face == [[0, 0, 255, 255], [0, 255, 0, 255], [0, 255, 0, 255], [0, 255, 0, 255]]
