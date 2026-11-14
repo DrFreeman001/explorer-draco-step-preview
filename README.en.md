@@ -4,6 +4,8 @@
 
 Thumbnails and 3D preview of **Draco** (`.drc`), **STEP** (`.step`, `.stp`), **STL**, **OBJ**, **3MF**, **PLY**, **GLB/GLTF** and **AMF** files right in Windows File Explorer: folder icons and the preview pane (Alt+P), where the model can be rotated with the mouse.
 
+![STEP, STL, PLY, 3MF, GLB and Draco thumbnails in Explorer, and the preview of a multi-colour 3MF with its dimensions](docs/images/explorer-preview.jpg)
+
 - **Draco**: every face is drawn with OpenGL, Z up as in a slicer.
 - **STEP**: read with OpenCascade, with part and face colours; glazing (polycarbonate, glass…) is see-through. Tested up to a 142 MB assembly (Rat Rig V-Core 4.1, 790 parts).
 - **STL, OBJ, 3MF**: face colours (VisCAM and Magics binary STL), vertex colours (OBJ) and material colours (3MF); text or binary STL, even truncated; multi-part 3MF projects. Takes over PowerToys STL thumbnails and the Windows 3MF handler, restored on uninstall.
