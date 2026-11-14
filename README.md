@@ -2,11 +2,14 @@
 
 *[English version](README.en.md)*
 
-Miniatures et aperçu 3D des fichiers **Draco** (`.drc`), **STEP** (`.step`, `.stp`), **STL**, **OBJ** et **3MF** directement dans l'Explorateur Windows : icônes du dossier et volet d'aperçu (Alt+P), où le modèle se tourne à la souris.
+Miniatures et aperçu 3D des fichiers **Draco** (`.drc`), **STEP** (`.step`, `.stp`), **STL**, **OBJ**, **3MF**, **PLY**, **GLB/GLTF** et **AMF** directement dans l'Explorateur Windows : icônes du dossier et volet d'aperçu (Alt+P), où le modèle se tourne à la souris.
 
 - **Draco** : toutes les faces sont dessinées par OpenGL, Z vers le haut comme dans un trancheur.
 - **STEP** : lecture par OpenCascade, avec les couleurs des pièces et des faces ; les vitrages (polycarbonate, verre…) sont translucides. Testé jusqu'à un assemblage de 142 Mo (Rat Rig V-Core 4.1, 790 pièces).
 - **STL, OBJ, 3MF** : couleurs des faces (STL binaires VisCAM et Magics), des sommets (OBJ) et des matériaux (3MF) ; STL texte ou binaire, même tronqués ; projets 3MF à plusieurs pièces. Remplace les miniatures STL de PowerToys et le gestionnaire 3MF de Windows, remis en place au retrait.
+- **Projets de trancheurs** : couleurs des filaments de Bambu Studio, OrcaSlicer et PrusaSlicer, par objet, par pièce et en peinture multicolore.
+- **Dimensions** : encombrement en millimètres et nombre de triangles en bas du volet d'aperçu.
+- **Miniatures à jour** : clic droit sur un dossier, « Refaire les miniatures 3D » (« Afficher plus d'options » sous Windows 11).
 - **Isolé** : chaque aperçu tourne dans un processus séparé, à faible intégrité, limité en mémoire et en temps. Un fichier piégé ou trop gros ne peut pas bloquer l'Explorateur.
 - **Réversible** : installation par utilisateur, sans droits d'administrateur. Le programme d'ouverture par défaut n'est jamais modifié, et le retrait remet le registre exactement comme avant.
 
@@ -43,7 +46,7 @@ Gardez le dossier en place tant que l'extension est installée : le registre poi
 
 ## Limites
 
-- Fichiers de 64 Mo au plus pour un Draco, 200 Mo pour un STEP, STL, OBJ ou 3MF ; 90 s et 3 Go de mémoire par aperçu.
+- Fichiers de 64 Mo au plus pour un Draco, 200 Mo pour les autres formats ; 90 s et 3 Go de mémoire par aperçu.
 - Un seul aperçu ouvert à la fois ; une seconde fenêtre l'indique.
 - Le clavier ne fonctionne qu'après un clic dans le modèle (R pour réinitialiser la vue).
 - Un gros STEP met du temps : environ 50 s pour 142 Mo. Son maillage est gardé une heure au plus pour que miniature et aperçu ne le lisent pas deux fois.

@@ -1,5 +1,13 @@
 # Journal des versions
 
+## 0.2.0 — novembre 2026
+
+- Nouveaux formats : PLY, glTF (GLB, et GLTF à données intégrées ; compression Draco comprise), AMF (ZIP compris).
+- Couleurs des projets Bambu Studio, OrcaSlicer et PrusaSlicer : filament de chaque objet et pièce, peinture multicolore.
+- Dimensions en millimètres et nombre de triangles en bas du volet d'aperçu.
+- Textes en français ou en anglais selon la langue de Windows.
+- Clic droit sur un dossier : « Refaire les miniatures 3D », sans toucher aux fichiers.
+
 ## 0.1.0 — novembre 2026
 
 Première version publiée séparément de dracoconv.

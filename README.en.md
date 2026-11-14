@@ -2,11 +2,14 @@
 
 *[Version française](README.md)*
 
-Thumbnails and 3D preview of **Draco** (`.drc`), **STEP** (`.step`, `.stp`), **STL**, **OBJ** and **3MF** files right in Windows File Explorer: folder icons and the preview pane (Alt+P), where the model can be rotated with the mouse.
+Thumbnails and 3D preview of **Draco** (`.drc`), **STEP** (`.step`, `.stp`), **STL**, **OBJ**, **3MF**, **PLY**, **GLB/GLTF** and **AMF** files right in Windows File Explorer: folder icons and the preview pane (Alt+P), where the model can be rotated with the mouse.
 
 - **Draco**: every face is drawn with OpenGL, Z up as in a slicer.
 - **STEP**: read with OpenCascade, with part and face colours; glazing (polycarbonate, glass…) is see-through. Tested up to a 142 MB assembly (Rat Rig V-Core 4.1, 790 parts).
 - **STL, OBJ, 3MF**: face colours (VisCAM and Magics binary STL), vertex colours (OBJ) and material colours (3MF); text or binary STL, even truncated; multi-part 3MF projects. Takes over PowerToys STL thumbnails and the Windows 3MF handler, restored on uninstall.
+- **Slicer projects**: filament colours from Bambu Studio, OrcaSlicer and PrusaSlicer, per object, per part and multi-colour painting.
+- **Dimensions**: size in millimetres and triangle count at the bottom of the preview pane.
+- **Fresh thumbnails**: right-click a folder, "Refresh 3D thumbnails" ("Show more options" on Windows 11).
 - **Isolated**: each preview runs in a separate low-integrity process with memory and time limits. A malicious or oversized file cannot hang Explorer.
 - **Reversible**: per-user install, no administrator rights. The default app is never changed, and uninstalling restores the registry exactly.
 
@@ -43,7 +46,7 @@ Keep the folder in place while the extension is installed: the registry points t
 
 ## Limits
 
-- At most 64 MB for a Draco file, 200 MB for a STEP, STL, OBJ or 3MF file; 90 s and 3 GB of memory per preview.
+- At most 64 MB for a Draco file, 200 MB for the other formats; 90 s and 3 GB of memory per preview.
 - One open preview at a time; a second window says so.
 - The keyboard works only after clicking in the model (R resets the view).
 - Large STEP files are slow: about 50 s for 142 MB. The mesh is kept for at most one hour so the thumbnail and the preview do not read it twice.
