@@ -47,7 +47,7 @@ Gardez le dossier en place tant que l'extension est installée : le registre poi
 - Un seul aperçu ouvert à la fois ; une seconde fenêtre l'indique.
 - Le clavier ne fonctionne qu'après un clic dans le modèle (R pour réinitialiser la vue).
 - Un gros STEP met du temps : environ 50 s pour 142 Mo. Son maillage est gardé une heure au plus pour que miniature et aperçu ne le lisent pas deux fois.
-- Si « 3D Viewer » de Microsoft est installé, c'est lui qui occupe le volet d'aperçu des STL, OBJ et 3MF : une application du Store passe avant les réglages du registre. Les miniatures restent les nôtres.
+- Si « 3D Viewer » de Microsoft est installé, c'est lui qui occupe le volet d'aperçu des STL, OBJ et 3MF : une application du Store passe avant les réglages du registre. Les miniatures restent les nôtres. Pour avoir aussi l'aperçu, désinstallez 3D Viewer (Microsoft ne le développe plus) depuis « Applications installées ».
 - Les miniatures déjà en cache ne sont pas refaites : Windows les garde jusqu'à ce que le fichier change ou que le cache soit vidé (Nettoyage de disque → Miniatures).
 
 Détails techniques : [windows/preview/README.md](windows/preview/README.md). Mesures et essais : [windows/preview/verification.md](windows/preview/verification.md).

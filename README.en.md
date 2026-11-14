@@ -47,7 +47,7 @@ Keep the folder in place while the extension is installed: the registry points t
 - One open preview at a time; a second window says so.
 - The keyboard works only after clicking in the model (R resets the view).
 - Large STEP files are slow: about 50 s for 142 MB. The mesh is kept for at most one hour so the thumbnail and the preview do not read it twice.
-- If Microsoft "3D Viewer" is installed, it keeps the preview pane for STL, OBJ and 3MF: a Store app wins over registry settings. Thumbnails stay ours.
+- If Microsoft "3D Viewer" is installed, it keeps the preview pane for STL, OBJ and 3MF: a Store app wins over registry settings. Thumbnails stay ours. To get the preview too, uninstall 3D Viewer (no longer developed by Microsoft) from "Installed apps".
 - Cached thumbnails are not redrawn: Windows keeps them until the file changes or the cache is cleared (Disk Cleanup → Thumbnails).
 
 Technical notes (French): [windows/preview/README.md](windows/preview/README.md). Measurements: [windows/preview/verification.md](windows/preview/verification.md).
