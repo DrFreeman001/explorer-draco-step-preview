@@ -1,5 +1,9 @@
 # Journal des versions
 
+## 0.2.2 — novembre 2026
+
+- Le runtime Visual C++ de Microsoft est inclus à côté du lecteur STEP : miniatures et aperçu des STEP marchent sur un PC où le « Visual C++ Redistributable » n'est pas installé.
+
 ## 0.2.1 — novembre 2026
 
 - L'installateur signale « 3D Viewer » de Microsoft s'il est installé (il garde le volet d'aperçu des STL, OBJ et 3MF) et propose d'ouvrir « Applications installées » pour le retirer.
