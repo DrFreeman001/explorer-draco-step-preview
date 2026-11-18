@@ -68,6 +68,21 @@ def _ascii_stl(head: bytes) -> bool:
     return text[:5].lower() == b"solid" and b"facet" in head.lower()
 
 
+_PRINTABLE = frozenset(range(32, 127)) | {9, 10, 13}
+_OBJ_LINE = re.compile(rb"(^|\n)\s*(v|f|o|g|mtllib|usemtl)\s")
+
+
+def _is_text(head: bytes) -> bool:
+    """Vrai pour un début de fichier texte (OBJ, STL texte…) : aucun octet nul, presque tout imprimable.
+
+    Un STL binaire contient des nombres à virgule flottante, donc des octets nuls ou non imprimables.
+    """
+    if not head or b"\0" in head:
+        return False
+    printable = sum(1 for b in head if b in _PRINTABLE or b >= 0x80)  # UTF-8 accepté
+    return printable >= 0.98 * len(head)
+
+
 def detect(head: bytes, size: int) -> str | None:
     """'stl', '3mf', 'obj', 'ply', 'gltf' ou 'amf' d'après les premiers octets et la taille ; None sinon."""
     from explorer_preview import scene_formats
@@ -77,9 +92,15 @@ def detect(head: bytes, size: int) -> str | None:
     kind = scene_formats.detect(head)
     if kind:
         return kind
-    if _ascii_stl(head) or binary_stl_count(head, size):
+    if _ascii_stl(head):
         return "stl"
-    if re.search(rb"(^|\n)\s*(v|f|o|g|mtllib|usemtl)\s", head):
+    # Un OBJ est du texte : le reconnaître avant le STL binaire, dont la lecture tolérante (fichiers tronqués)
+    # prendrait sinon certains fichiers texte pour des triangles.
+    if _is_text(head) and _OBJ_LINE.search(head):
+        return "obj"
+    if binary_stl_count(head, size):
+        return "stl"
+    if _OBJ_LINE.search(head):
         return "obj"
     return None
 

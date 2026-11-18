@@ -202,3 +202,25 @@ def test_bambu_filament_colors_by_object_part_and_paint():
     per_face = mesh.colors[::3].tolist()
     # Objet 2 : extrudeur 3 (bleu), sa pièce hérite ; objet 3 : pièce sur l'extrudeur 2 (vert) ; peinture : extrudeur 2.
     assert per_face == [[0, 0, 255, 255], [0, 255, 0, 255], [0, 255, 0, 255], [0, 255, 0, 255]]
+
+
+def test_text_obj_is_never_taken_for_a_truncated_binary_stl():
+    """Le texte d'un OBJ lu comme des nombres binaires ressemble à un STL tronqué : il doit rester un OBJ."""
+    lines = [f"v {26.5 - i * 0.11:.4f} {i * 0.37:.4f} {11.8 + i * 0.05:.4f} 0.286 0.361 0.937" for i in range(400)]
+    lines += [f"f {i + 1} {i + 2} {i + 3}" for i in range(398)]
+    data = ("\n".join(lines) + "\n").encode()
+    assert mf.detect(data[:4096], len(data)) == "obj"
+    mesh = mf.load_obj(data)
+    assert len(mesh.faces) == 398 and mesh.colors is not None
+    # Taille qui tombe sur 84 + 50 × n : autrefois prise pour un STL binaire.
+    padded = data + b"#" * ((84 - len(data)) % 50) + b"\n" * 50
+    padded = padded[:len(padded) - ((len(padded) - 84) % 50)]
+    assert (len(padded) - 84) % 50 == 0
+    assert mf.detect(padded[:4096], len(padded)) == "obj"
+
+
+def test_binary_stl_with_text_header_is_still_stl():
+    data = binary_stl()
+    header = b"solid-like exported by v 1.0 f 2".ljust(80, b" ")
+    data = header + data[80:]
+    assert mf.detect(data[:4096], len(data)) == "stl"
