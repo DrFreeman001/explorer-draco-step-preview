@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "explorer-draco-step-preview"
-version = "0.3.1"
+version = "0.4.0"
 description = "Miniatures et aperçu 3D des fichiers Draco (.drc) et STEP (.step, .stp) dans l'Explorateur Windows"
 readme = "README.md"
 license = { text = "Apache-2.0" }

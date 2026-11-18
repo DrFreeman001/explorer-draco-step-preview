@@ -1,6 +1,6 @@
 # Journal des versions
 
-## À venir
+## 0.4.0 — novembre 2026
 
 - Volet d'aperçu : mesure de distance (touche M, deux clics sur le modèle), en millimètres avec les écarts X, Y et Z.
 
