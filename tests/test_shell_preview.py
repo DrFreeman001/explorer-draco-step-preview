@@ -158,3 +158,78 @@ def test_number_keys_switch_views(qapp, monkeypatch):
     assert (widget.yaw, widget.pitch, widget.zoom) == (0., 90., 2.5)  # le zoom choisi reste
     press(Qt.Key.Key_0)
     assert (widget.yaw, widget.pitch, widget.zoom) == shell_preview.DEFAULT_VIEW
+
+
+def _cube_mesh(size_mm=20.0):
+    from explorer_preview.preview_rendering import prepare_arrays
+
+    v = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], float)
+    f = np.array([[0, 2, 1], [0, 3, 2], [4, 5, 6], [4, 6, 7], [0, 1, 5], [0, 5, 4],
+                  [1, 2, 6], [1, 6, 5], [2, 3, 7], [2, 7, 6], [3, 0, 4], [3, 4, 7]], np.uint32)
+    return prepare_arrays(v * size_mm, f)
+
+
+def test_view_matrix_matches_the_fallback_projection():
+    from explorer_preview.shell_preview import view_matrix
+
+    point = np.array([0.3, -0.2, 0.4])
+    upright = np.array([[[point[0], point[2], -point[1]]]])
+    for yaw, pitch in ((30, 20), (0, 90), (-90, 0), (180, -45)):
+        assert np.allclose(view_matrix(yaw, pitch) @ point, project(upright, yaw, pitch, 1.)[0, 0])
+
+
+def test_pick_hits_the_visible_face_and_measures_in_mm():
+    from explorer_preview.shell_preview import PRESET_VIEWS, mm_per_unit, pick, to_screen
+
+    mesh = _cube_mesh(20.0)
+    assert mm_per_unit(mesh) == pytest.approx(20.0)
+    top = pick(mesh, 200, 150, 400, 300, *PRESET_VIEWS[1], 1.)
+    assert top[2] == pytest.approx(0.5)  # vue de dessus : la face du haut
+    front = pick(mesh, 200, 150, 400, 300, *PRESET_VIEWS[3], 1.)
+    assert front[1] == pytest.approx(-0.5)  # vue de face : la face avant (-Y)
+    assert pick(mesh, 5, 5, 400, 300, *PRESET_VIEWS[1], 1.) is None  # à côté du modèle
+    # Deux coins opposés de la face du haut, vus de dessus : diagonale de 20 × √2 mm.
+    corners = np.array([[-0.5, -0.5, 0.5], [0.5, 0.5, 0.5]]) * 0.98
+    sx, sy, _ = to_screen(corners, 400, 300, *PRESET_VIEWS[1], 1.)
+    a = pick(mesh, sx[0], sy[0], 400, 300, *PRESET_VIEWS[1], 1.)
+    b = pick(mesh, sx[1], sy[1], 400, 300, *PRESET_VIEWS[1], 1.)
+    assert np.linalg.norm(b - a) * mm_per_unit(mesh) == pytest.approx(20 * 0.98 * np.sqrt(2), rel=1e-3)
+
+
+def test_measure_mode_clicks_and_drags(qapp, monkeypatch):
+    from PySide6.QtCore import QPointF, Qt
+    from PySide6.QtGui import QKeyEvent, QMouseEvent
+    from explorer_preview import shell_preview
+
+    widget = shell_preview.Preview.__new__(shell_preview.Preview)
+    monkeypatch.setattr(shell_preview.Preview, 'update', lambda self: None)
+    monkeypatch.setattr(shell_preview.Preview, 'width', lambda self: 400)
+    monkeypatch.setattr(shell_preview.Preview, 'height', lambda self: 300)
+    monkeypatch.setattr(shell_preview.Preview, 'setFocus', lambda self: None)
+    widget.mesh, widget.points, widget.measuring, widget.press, widget.drag = _cube_mesh(), [], False, None, None
+    widget.yaw, widget.pitch, widget.zoom = 0., 90., 1.
+
+    def key(k):
+        shell_preview.Preview.keyPressEvent(widget, QKeyEvent(QKeyEvent.Type.KeyPress, k, Qt.KeyboardModifier.NoModifier))
+
+    def click(x, y, to=None):
+        down = QMouseEvent(QMouseEvent.Type.MouseButtonPress, QPointF(x, y), Qt.MouseButton.LeftButton,
+                           Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+        end = to or (x, y)
+        up = QMouseEvent(QMouseEvent.Type.MouseButtonRelease, QPointF(*end), Qt.MouseButton.LeftButton,
+                         Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
+        shell_preview.Preview.mousePressEvent(widget, down)
+        shell_preview.Preview.mouseReleaseEvent(widget, up)
+
+    click(200, 150)
+    assert widget.points == []  # hors du mode mesure, un clic ne pose rien
+    key(Qt.Key.Key_M)
+    click(150, 120)
+    click(150, 120, to=(250, 200))  # glisser : rotation, pas de point
+    assert len(widget.points) == 1
+    click(250, 180)
+    assert len(widget.points) == 2 and 'mm' in widget.distance_text()
+    click(200, 150)
+    assert len(widget.points) == 1  # un troisième clic recommence
+    key(Qt.Key.Key_Escape)
+    assert not widget.measuring and widget.points == []

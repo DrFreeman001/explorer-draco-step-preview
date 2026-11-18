@@ -7,8 +7,8 @@ from pathlib import Path
 import sys
 import threading
 import numpy as np
-from PySide6.QtCore import Qt, QPointF, QTimer, Signal
-from PySide6.QtGui import QColor, QImage, QPainter, QPolygonF
+from PySide6.QtCore import Qt, QPoint, QPointF, QTimer, Signal
+from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPolygonF
 from PySide6.QtWidgets import QApplication, QWidget
 from explorer_preview import preview_rendering as gpu_rendering
 from explorer_preview import mesh_formats, preview_temp, step_preview
@@ -27,11 +27,15 @@ def _french() -> bool:
 FRENCH = _french()
 TEXTS = {
     True: {'loading': 'Chargement…', 'simplified': 'Affichage simplifié · ',
-           'hint': 'Glisser : rotation · Molette : zoom · 1 dessus, 3 face, 5 gauche, 6 droite · 0 ou R : vue de départ',
-           'triangles': 'triangles'},
+           'hint': 'Glisser : rotation · Molette : zoom · 1 dessus, 3 face, 5 gauche, 6 droite · 0 ou R : vue de départ'
+                   ' · M : mesurer',
+           'triangles': 'triangles', 'measure': 'Mesure : cliquez deux points du modèle (Échap pour quitter)',
+           'distance': 'Distance'},
     False: {'loading': 'Loading…', 'simplified': 'Simplified drawing · ',
-            'hint': 'Drag: rotate · Wheel: zoom · 1 top, 3 front, 5 left, 6 right · 0 or R: starting view',
-            'triangles': 'triangles'},
+            'hint': 'Drag: rotate · Wheel: zoom · 1 top, 3 front, 5 left, 6 right · 0 or R: starting view'
+                    ' · M: measure',
+            'triangles': 'triangles', 'measure': 'Measure: click two points on the model (Esc to leave)',
+            'distance': 'Distance'},
 }
 TEXT = TEXTS[FRENCH]
 SIMPLIFIED = TEXT['simplified']
@@ -99,6 +103,48 @@ def sample_triangles(mesh, face_limit: int = 12000, up: str = UP_AXIS):
     return triangles, reduced
 
 
+def view_matrix(yaw: float, pitch: float, up: str = UP_AXIS) -> np.ndarray:
+    """Rotation du rendu OpenGL (preview_rendering.render) : Rx(tangage) · Ry(lacet) · Rx(-90°) si Z vertical."""
+    y, p = np.radians([yaw, pitch])
+    ry = np.array([[np.cos(y), 0, np.sin(y)], [0, 1, 0], [-np.sin(y), 0, np.cos(y)]])
+    rx = np.array([[1, 0, 0], [0, np.cos(p), -np.sin(p)], [0, np.sin(p), np.cos(p)]])
+    upright = np.array([[1, 0, 0], [0, 0, 1], [0, -1, 0]]) if up == 'z' else np.eye(3)
+    return rx @ ry @ upright
+
+
+def to_screen(points, width, height, yaw, pitch, zoom):
+    """Points du maillage normalisé → (x, y) en pixels du widget et profondeur (plus grand = plus proche)."""
+    turned = np.asarray(points, dtype=np.float64) @ view_matrix(yaw, pitch).T
+    scale = min(width, height) * .72 * float(np.clip(zoom, .2, 5.))
+    return width / 2 + turned[..., 0] * scale, height / 2 - turned[..., 1] * scale, turned[..., 2]
+
+
+def pick(mesh, x, y, width, height, yaw, pitch, zoom):
+    """Point de la surface sous le pixel (x, y), en coordonnées normalisées du maillage ; None si rien."""
+    sx, sy, depth = to_screen(mesh.positions, width, height, yaw, pitch, zoom)
+    faces = mesh.faces.reshape(-1, 3)
+    ax, bx, cx = sx[faces[:, 0]], sx[faces[:, 1]], sx[faces[:, 2]]
+    ay, by, cy = sy[faces[:, 0]], sy[faces[:, 1]], sy[faces[:, 2]]
+    den = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        u = ((by - cy) * (x - cx) + (cx - bx) * (y - cy)) / den
+        v = ((cy - ay) * (x - cx) + (ax - cx) * (y - cy)) / den
+    w = 1 - u - v
+    inside = (np.abs(den) > 1e-12) & (u >= -1e-6) & (v >= -1e-6) & (w >= -1e-6)
+    if not inside.any():
+        return None
+    hits = np.nonzero(inside)[0]
+    z = u[hits] * depth[faces[hits, 0]] + v[hits] * depth[faces[hits, 1]] + w[hits] * depth[faces[hits, 2]]
+    best = hits[int(np.argmax(z))]
+    a, b, c = (mesh.positions[faces[best, k]].astype(np.float64) for k in range(3))
+    return u[best] * a + v[best] * b + w[best] * c
+
+
+def mm_per_unit(mesh) -> float:
+    """Millimètres par unité du maillage normalisé (sa plus grande dimension vaut 1)."""
+    return max(mesh.size) * mesh.unit_mm if mesh.size else 1.0
+
+
 def project(triangles, yaw=30., pitch=-20., zoom=1.):
     y, p = np.radians([yaw, pitch])
     ry = np.array([[np.cos(y),0,np.sin(y)],[0,1,0],[-np.sin(y),0,np.cos(y)]])
@@ -154,6 +200,10 @@ class Preview(QWidget):
         self.info = ''
         self.yaw, self.pitch, self.zoom = DEFAULT_VIEW
         self.drag = None
+        self.mesh = None
+        self.measuring = False  # touche M : les clics posent des points de mesure
+        self.points: list = []  # points mesurés, coordonnées normalisées du maillage
+        self.press = None
         self.parent_hwnd = parent_hwnd
         self.source = source
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
@@ -186,6 +236,7 @@ class Preview(QWidget):
     def ready(self, mesh, message):
         # Le contexte OpenGL se crée ici, sur le fil de l'interface.
         if mesh is not None:
+            self.mesh = mesh
             self.info = describe(mesh)
             try:
                 self.renderer = gpu_rendering.MeshRenderer(mesh)
@@ -232,15 +283,63 @@ class Preview(QWidget):
             paint_mesh(painter,self.triangles,self.width(),self.height(),self.yaw,self.pitch,self.zoom)
         else:
             painter.fillRect(self.rect(), QColor('#eef1f5'))
+        self.paint_measure(painter)
         painter.setPen(QColor('#26384c'))
-        painter.drawText(self.rect().adjusted(10,10,-10,-10), Qt.AlignmentFlag.AlignBottom | Qt.TextFlag.TextWordWrap, (self.info + '\n' if self.info else '') + self.message + (TEXT['hint'] if self.has_model() else ''))
+        hint = TEXT['measure'] if self.measuring else TEXT['hint']
+        painter.drawText(self.rect().adjusted(10,10,-10,-10), Qt.AlignmentFlag.AlignBottom | Qt.TextFlag.TextWordWrap, (self.info + '\n' if self.info else '') + self.message + (hint if self.has_model() else ''))
+
+    def distance_text(self) -> str:
+        """« Distance : 42,3 mm (ΔX 10,0 · ΔY 0,0 · ΔZ 41,1) » entre les deux points mesurés."""
+        a, b = self.points
+        delta = np.abs(b - a) * mm_per_unit(self.mesh)
+        # Le maillage normalisé garde les axes du fichier : Z vertical pour un modèle d'impression 3D.
+        def number(value):
+            text = f'{value:,.2f}' if value < 100 else f'{value:,.1f}'
+            return text.replace(',', ' ').replace('.', ',') if FRENCH else text
+        total = float(np.linalg.norm(delta))
+        return (f"{TEXT['distance']} : {number(total)} mm  (ΔX {number(delta[0])} · ΔY {number(delta[1])} · "
+                f"ΔZ {number(delta[2])})").replace(' : ', ' : ' if FRENCH else ': ')
+
+    def paint_measure(self, painter):
+        if not self.points or self.mesh is None:
+            return
+        sx, sy, _ = to_screen(np.array(self.points), self.width(), self.height(), self.yaw, self.pitch, self.zoom)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(QPen(QColor('#d6336c'), 2))
+        if len(self.points) == 2:
+            painter.drawLine(QPointF(sx[0], sy[0]), QPointF(sx[1], sy[1]))
+        painter.setBrush(QColor('#d6336c'))
+        for x, y in zip(sx, sy):
+            painter.drawEllipse(QPointF(x, y), 4.5, 4.5)
+        if len(self.points) == 2:
+            text = self.distance_text()
+            metrics = painter.fontMetrics()
+            box = metrics.boundingRect(text).adjusted(-8, -5, 8, 5)
+            box.moveTopLeft(QPoint(10, 10))
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(38, 56, 76, 225))
+            painter.drawRoundedRect(box, 6, 6)
+            painter.setPen(QColor('white'))
+            painter.drawText(box, Qt.AlignmentFlag.AlignCenter, text)
 
     def mousePressEvent(self, event):
         self.drag = event.position()
+        self.press = event.position()
         self.setFocus()
 
     def mouseReleaseEvent(self, event):
         self.drag = None
+        start, self.press = self.press, None
+        if not (self.measuring and self.mesh is not None and start is not None):
+            return
+        if (event.position() - start).manhattanLength() > 4:
+            return  # c'était une rotation, pas un clic
+        point = pick(self.mesh, event.position().x(), event.position().y(), self.width(), self.height(),
+                     self.yaw, self.pitch, self.zoom)
+        if point is None:
+            return
+        self.points = [point] if len(self.points) != 1 else self.points + [point]
+        self.update()
 
     def mouseMoveEvent(self, event):
         if self.drag is not None:
@@ -262,7 +361,15 @@ class Preview(QWidget):
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key == Qt.Key.Key_R:
+        if key == Qt.Key.Key_M:
+            self.measuring = not self.measuring
+            self.points = []
+            self.update()
+        elif key == Qt.Key.Key_Escape and self.measuring:
+            self.measuring = False
+            self.points = []
+            self.update()
+        elif key == Qt.Key.Key_R:
             self.yaw, self.pitch, self.zoom = DEFAULT_VIEW
             self.update()
         elif Qt.Key.Key_0 <= key <= Qt.Key.Key_6:

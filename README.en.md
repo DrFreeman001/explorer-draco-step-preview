@@ -13,6 +13,7 @@ Thumbnails and 3D preview of **Draco** (`.drc`), **STEP** (`.step`, `.stp`), **S
 - **STL, OBJ, 3MF**: face colours (VisCAM and Magics binary STL), vertex colours (OBJ) and material colours (3MF); text or binary STL, even truncated; multi-part 3MF projects. Takes over PowerToys STL thumbnails and the Windows 3MF handler, restored on uninstall.
 - **Slicer projects**: filament colours from Bambu Studio, OrcaSlicer and PrusaSlicer, per object, per part and multi-colour painting.
 - **Views**: keys 0 to 6 as in slicers (1 top, 2 bottom, 3 front, 4 back, 5 left, 6 right, 0 or R starting view), after clicking in the model.
+- **Measure**: press M, then click two points on the model: distance in millimetres, with its X, Y and Z offsets.
 - **Dimensions**: size in millimetres and triangle count at the bottom of the preview pane.
 - **Fresh thumbnails**: right-click a folder, "Refresh 3D thumbnails" ("Show more options" on Windows 11).
 - **Isolated**: each preview runs in a separate low-integrity process with memory and time limits. A malicious or oversized file cannot hang Explorer.

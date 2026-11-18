@@ -13,6 +13,7 @@ Miniatures et aperçu 3D des fichiers **Draco** (`.drc`), **STEP** (`.step`, `.s
 - **STL, OBJ, 3MF** : couleurs des faces (STL binaires VisCAM et Magics), des sommets (OBJ) et des matériaux (3MF) ; STL texte ou binaire, même tronqués ; projets 3MF à plusieurs pièces. Remplace les miniatures STL de PowerToys et le gestionnaire 3MF de Windows, remis en place au retrait.
 - **Projets de trancheurs** : couleurs des filaments de Bambu Studio, OrcaSlicer et PrusaSlicer, par objet, par pièce et en peinture multicolore.
 - **Vues** : touches 0 à 6 comme dans les trancheurs (1 dessus, 2 dessous, 3 face, 4 arrière, 5 gauche, 6 droite, 0 ou R vue de départ), après un clic dans le modèle.
+- **Mesure** : touche M, puis deux clics sur le modèle : distance en millimètres, avec ses écarts en X, Y et Z.
 - **Dimensions** : encombrement en millimètres et nombre de triangles en bas du volet d'aperçu.
 - **Miniatures à jour** : clic droit sur un dossier, « Refaire les miniatures 3D » (« Afficher plus d'options » sous Windows 11).
 - **Isolé** : chaque aperçu tourne dans un processus séparé, à faible intégrité, limité en mémoire et en temps. Un fichier piégé ou trop gros ne peut pas bloquer l'Explorateur.

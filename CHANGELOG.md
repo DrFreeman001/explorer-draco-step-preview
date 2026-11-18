@@ -1,5 +1,9 @@
 # Journal des versions
 
+## À venir
+
+- Volet d'aperçu : mesure de distance (touche M, deux clics sur le modèle), en millimètres avec les écarts X, Y et Z.
+
 ## 0.3.1 — novembre 2026
 
 - Correction : certains OBJ (fichiers texte) étaient pris pour un STL tronqué et s'affichaient vides, avec des dimensions absurdes.
