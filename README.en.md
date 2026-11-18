@@ -4,7 +4,7 @@
 
 Thumbnails and 3D preview of **Draco** (`.drc`), **STEP** (`.step`, `.stp`), **STL**, **OBJ**, **3MF**, **PLY**, **GLB/GLTF** and **AMF** files right in Windows File Explorer: folder icons and the preview pane (Alt+P), where the model can be rotated with the mouse.
 
-![STEP, STL, PLY, 3MF, GLB and Draco thumbnails in Explorer, and the preview of a multi-colour 3MF with its dimensions](docs/images/explorer-preview.jpg)
+![STEP, STL, OBJ, PLY, 3MF, GLB and Draco thumbnails in Windows Explorer](docs/images/explorer-preview.png)
 
 ![Preview pane: rotating with the mouse, then top, front, right and starting views (keys 1, 3, 6, 0) on a multi-colour Bambu project](docs/images/preview-en.webp)
 

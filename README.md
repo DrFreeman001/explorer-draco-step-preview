@@ -4,7 +4,7 @@
 
 Miniatures et aperçu 3D des fichiers **Draco** (`.drc`), **STEP** (`.step`, `.stp`), **STL**, **OBJ**, **3MF**, **PLY**, **GLB/GLTF** et **AMF** directement dans l'Explorateur Windows : icônes du dossier et volet d'aperçu (Alt+P), où le modèle se tourne à la souris.
 
-![Miniatures STEP, STL, PLY, 3MF, GLB et Draco dans l'Explorateur, et aperçu d'un 3MF multicolore avec ses dimensions](docs/images/explorer-preview.jpg)
+![Miniatures STEP, STL, OBJ, PLY, 3MF, GLB et Draco dans l'Explorateur Windows](docs/images/explorer-preview.png)
 
 ![Volet d'aperçu : rotation à la souris, puis vues dessus, face, droite et vue de départ (touches 1, 3, 6, 0) sur un projet Bambu multicolore](docs/images/apercu-fr.webp)
 
