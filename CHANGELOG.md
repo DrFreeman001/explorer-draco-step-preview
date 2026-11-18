@@ -1,5 +1,9 @@
 # Journal des versions
 
+## 0.3.1 — novembre 2026
+
+- Correction : certains OBJ (fichiers texte) étaient pris pour un STL tronqué et s'affichaient vides, avec des dimensions absurdes.
+
 ## 0.3.0 — novembre 2026
 
 - Volet d'aperçu : vues prédéfinies aux touches 0 à 6, comme dans Bambu Studio, OrcaSlicer et PrusaSlicer (1 dessus, 2 dessous, 3 face, 4 arrière, 5 gauche, 6 droite, 0 ou R vue de départ).
