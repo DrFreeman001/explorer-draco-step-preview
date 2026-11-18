@@ -1,5 +1,10 @@
 # Journal des versions
 
+## 0.2.1 — novembre 2026
+
+- L'installateur signale « 3D Viewer » de Microsoft s'il est installé (il garde le volet d'aperçu des STL, OBJ et 3MF) et propose d'ouvrir « Applications installées » pour le retirer.
+- README : cette consigne est remontée dans la section Installation.
+
 ## 0.2.0 — novembre 2026
 
 - Nouveaux formats : PLY, glTF (GLB, et GLTF à données intégrées ; compression Draco comprise), AMF (ZIP compris).
