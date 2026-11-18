@@ -10,6 +10,7 @@ Miniatures et aperçu 3D des fichiers **Draco** (`.drc`), **STEP** (`.step`, `.s
 - **STEP** : lecture par OpenCascade, avec les couleurs des pièces et des faces ; les vitrages (polycarbonate, verre…) sont translucides. Testé jusqu'à un assemblage de 142 Mo (Rat Rig V-Core 4.1, 790 pièces).
 - **STL, OBJ, 3MF** : couleurs des faces (STL binaires VisCAM et Magics), des sommets (OBJ) et des matériaux (3MF) ; STL texte ou binaire, même tronqués ; projets 3MF à plusieurs pièces. Remplace les miniatures STL de PowerToys et le gestionnaire 3MF de Windows, remis en place au retrait.
 - **Projets de trancheurs** : couleurs des filaments de Bambu Studio, OrcaSlicer et PrusaSlicer, par objet, par pièce et en peinture multicolore.
+- **Vues** : touches 0 à 6 comme dans les trancheurs (1 dessus, 2 dessous, 3 face, 4 arrière, 5 gauche, 6 droite, 0 ou R vue de départ), après un clic dans le modèle.
 - **Dimensions** : encombrement en millimètres et nombre de triangles en bas du volet d'aperçu.
 - **Miniatures à jour** : clic droit sur un dossier, « Refaire les miniatures 3D » (« Afficher plus d'options » sous Windows 11).
 - **Isolé** : chaque aperçu tourne dans un processus séparé, à faible intégrité, limité en mémoire et en temps. Un fichier piégé ou trop gros ne peut pas bloquer l'Explorateur.
@@ -52,7 +53,7 @@ Gardez le dossier en place tant que l'extension est installée : le registre poi
 
 - Fichiers de 64 Mo au plus pour un Draco, 200 Mo pour les autres formats ; 90 s et 3 Go de mémoire par aperçu.
 - Un seul aperçu ouvert à la fois ; une seconde fenêtre l'indique.
-- Le clavier ne fonctionne qu'après un clic dans le modèle (R pour réinitialiser la vue).
+- Le clavier ne fonctionne qu'après un clic dans le modèle.
 - Un gros STEP met du temps : environ 50 s pour 142 Mo. Son maillage est gardé une heure au plus pour que miniature et aperçu ne le lisent pas deux fois.
 - Si « 3D Viewer » de Microsoft est installé, c'est lui qui occupe le volet d'aperçu des STL, OBJ et 3MF : une application du Store passe avant les réglages du registre. Les miniatures restent les nôtres. Pour avoir aussi l'aperçu, désinstallez 3D Viewer (voir [Installation](#installation)).
 - Les miniatures déjà en cache ne sont pas refaites : Windows les garde jusqu'à ce que le fichier change ou que le cache soit vidé (Nettoyage de disque → Miniatures).

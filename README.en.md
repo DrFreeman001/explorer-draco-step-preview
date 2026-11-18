@@ -10,6 +10,7 @@ Thumbnails and 3D preview of **Draco** (`.drc`), **STEP** (`.step`, `.stp`), **S
 - **STEP**: read with OpenCascade, with part and face colours; glazing (polycarbonate, glass…) is see-through. Tested up to a 142 MB assembly (Rat Rig V-Core 4.1, 790 parts).
 - **STL, OBJ, 3MF**: face colours (VisCAM and Magics binary STL), vertex colours (OBJ) and material colours (3MF); text or binary STL, even truncated; multi-part 3MF projects. Takes over PowerToys STL thumbnails and the Windows 3MF handler, restored on uninstall.
 - **Slicer projects**: filament colours from Bambu Studio, OrcaSlicer and PrusaSlicer, per object, per part and multi-colour painting.
+- **Views**: keys 0 to 6 as in slicers (1 top, 2 bottom, 3 front, 4 back, 5 left, 6 right, 0 or R starting view), after clicking in the model.
 - **Dimensions**: size in millimetres and triangle count at the bottom of the preview pane.
 - **Fresh thumbnails**: right-click a folder, "Refresh 3D thumbnails" ("Show more options" on Windows 11).
 - **Isolated**: each preview runs in a separate low-integrity process with memory and time limits. A malicious or oversized file cannot hang Explorer.
@@ -52,7 +53,7 @@ Keep the folder in place while the extension is installed: the registry points t
 
 - At most 64 MB for a Draco file, 200 MB for the other formats; 90 s and 3 GB of memory per preview.
 - One open preview at a time; a second window says so.
-- The keyboard works only after clicking in the model (R resets the view).
+- The keyboard works only after clicking in the model.
 - Large STEP files are slow: about 50 s for 142 MB. The mesh is kept for at most one hour so the thumbnail and the preview do not read it twice.
 - If Microsoft "3D Viewer" is installed, it keeps the preview pane for STL, OBJ and 3MF: a Store app wins over registry settings. Thumbnails stay ours. To get the preview too, uninstall 3D Viewer (see [Installation](#installation)).
 - Cached thumbnails are not redrawn: Windows keeps them until the file changes or the cache is cleared (Disk Cleanup → Thumbnails).
