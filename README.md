@@ -21,6 +21,8 @@ Projet né à côté de [dracoconv](https://github.com/DrFreeman001/dracoconv), 
 
 **Le plus simple :** téléchargez `explorer-draco-step-preview-<version>-setup.exe` dans les [versions publiées](https://github.com/DrFreeman001/explorer-draco-step-preview/releases/latest) et lancez-le (environ 56 Mo, rien d'autre à installer : Python et OpenCascade sont inclus). Installation pour vous seul, sans droits d'administrateur ; désinstallation depuis « Applications installées », qui remet le registre comme avant. L'installateur n'étant pas signé, Windows SmartScreen peut afficher « éditeur inconnu » : « Informations complémentaires », puis « Exécuter quand même ».
 
+> **Désinstallez « 3D Viewer » de Microsoft s'il est présent.** Cette application du Store n'est plus développée par Microsoft, et elle garde pour elle le volet d'aperçu des STL, OBJ et 3MF : les miniatures sont les nôtres, mais l'aperçu reste le sien. Paramètres → Applications → Applications installées → 3D Viewer → Désinstaller, puis redémarrez l'Explorateur. L'installateur vous le signale s'il le trouve.
+
 **Depuis les sources :** Windows 10 ou 11 x64, Python 3.11 ou plus récent, outils de compilation Microsoft C++ (Visual Studio Build Tools, charge « Développement Desktop en C++ »). Depuis PowerShell :
 
 ```powershell
@@ -52,7 +54,7 @@ Gardez le dossier en place tant que l'extension est installée : le registre poi
 - Un seul aperçu ouvert à la fois ; une seconde fenêtre l'indique.
 - Le clavier ne fonctionne qu'après un clic dans le modèle (R pour réinitialiser la vue).
 - Un gros STEP met du temps : environ 50 s pour 142 Mo. Son maillage est gardé une heure au plus pour que miniature et aperçu ne le lisent pas deux fois.
-- Si « 3D Viewer » de Microsoft est installé, c'est lui qui occupe le volet d'aperçu des STL, OBJ et 3MF : une application du Store passe avant les réglages du registre. Les miniatures restent les nôtres. Pour avoir aussi l'aperçu, désinstallez 3D Viewer (Microsoft ne le développe plus) depuis « Applications installées ».
+- Si « 3D Viewer » de Microsoft est installé, c'est lui qui occupe le volet d'aperçu des STL, OBJ et 3MF : une application du Store passe avant les réglages du registre. Les miniatures restent les nôtres. Pour avoir aussi l'aperçu, désinstallez 3D Viewer (voir [Installation](#installation)).
 - Les miniatures déjà en cache ne sont pas refaites : Windows les garde jusqu'à ce que le fichier change ou que le cache soit vidé (Nettoyage de disque → Miniatures).
 
 Détails techniques : [windows/preview/README.md](windows/preview/README.md). Mesures et essais : [windows/preview/verification.md](windows/preview/verification.md).

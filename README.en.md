@@ -21,6 +21,8 @@ Started alongside [dracoconv](https://github.com/DrFreeman001/dracoconv), the Dr
 
 **Easiest:** download `explorer-draco-step-preview-<version>-setup.exe` from the [releases](https://github.com/DrFreeman001/explorer-draco-step-preview/releases/latest) and run it (about 56 MB, nothing else to install: Python and OpenCascade are included). Per-user install, no administrator rights; uninstall from "Installed apps", which restores the registry. The installer is not signed, so Windows SmartScreen may say "unknown publisher": "More info", then "Run anyway".
 
+> **Uninstall Microsoft "3D Viewer" if it is present.** Microsoft no longer develops this Store app, and it keeps the preview pane for STL, OBJ and 3MF to itself: thumbnails are ours, but the preview stays its own. Settings → Apps → Installed apps → 3D Viewer → Uninstall, then restart Explorer. The installer tells you if it finds it.
+
 **From source:** Windows 10 or 11 x64, Python 3.11 or newer, Microsoft C++ build tools (Visual Studio Build Tools, "Desktop development with C++" workload). From PowerShell:
 
 ```powershell
@@ -52,7 +54,7 @@ Keep the folder in place while the extension is installed: the registry points t
 - One open preview at a time; a second window says so.
 - The keyboard works only after clicking in the model (R resets the view).
 - Large STEP files are slow: about 50 s for 142 MB. The mesh is kept for at most one hour so the thumbnail and the preview do not read it twice.
-- If Microsoft "3D Viewer" is installed, it keeps the preview pane for STL, OBJ and 3MF: a Store app wins over registry settings. Thumbnails stay ours. To get the preview too, uninstall 3D Viewer (no longer developed by Microsoft) from "Installed apps".
+- If Microsoft "3D Viewer" is installed, it keeps the preview pane for STL, OBJ and 3MF: a Store app wins over registry settings. Thumbnails stay ours. To get the preview too, uninstall 3D Viewer (see [Installation](#installation)).
 - Cached thumbnails are not redrawn: Windows keeps them until the file changes or the cache is cleared (Disk Cleanup → Thumbnails).
 
 Technical notes (French): [windows/preview/README.md](windows/preview/README.md). Measurements: [windows/preview/verification.md](windows/preview/verification.md).
