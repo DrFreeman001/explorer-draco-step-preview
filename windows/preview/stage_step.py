@@ -1,12 +1,17 @@
 """Copie à côté de step_mesh.exe les DLL dont il a besoin, trouvées dans third_party.
 
-Parcourt les dépendances avec dumpbin ; les DLL du système et du runtime Visual C++ restent celles de Windows.
-Usage : python -I windows/preview/stage_step.py <dumpbin.exe>
+Parcourt les dépendances avec dumpbin. Les DLL du runtime Visual C++ (vcruntime, msvcp, vcomp…) sont copiées
+depuis le dossier Redist de Visual Studio, que Microsoft autorise à distribuer : ainsi le lecteur STEP marche
+sur un PC où le « Visual C++ Redistributable » n'est pas installé. Les DLL de Windows restent celles du système.
+Usage : python -I windows/preview/stage_step.py <dumpbin.exe> [<dossier Redist x64>]
 """
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
+
+RUNTIME = re.compile(r'^(vcruntime140(_\d+)?|msvcp140(_\w+)?|vcomp140|concrt140)\.dll$', re.IGNORECASE)
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -42,6 +47,18 @@ def main():
                 continue
             shutil.copy2(source, TARGET / source.name)
             todo.append(source)
+    runtime = sorted(name for name in system if RUNTIME.match(name))
+    if len(sys.argv) > 2:
+        redist = Path(sys.argv[2])
+        for name in runtime:
+            found = next((p for p in redist.rglob('*.dll') if p.name.lower() == name.lower()), None)
+            if found is None:
+                sys.exit(f'Runtime Visual C++ introuvable dans {redist} : {name}')
+            shutil.copy2(found, TARGET / found.name)
+            system.discard(name)
+        print('Runtime Visual C++ inclus :', ', '.join(runtime))
+    elif runtime:
+        print('Attention, runtime Visual C++ non inclus :', ', '.join(runtime))
     local = sorted(p.name for p in TARGET.glob('*.dll'))
     size = sum(p.stat().st_size for p in TARGET.glob('*.dll')) // 2**20
     print(f'{len(local)} DLL copiées ({size} Mo)')

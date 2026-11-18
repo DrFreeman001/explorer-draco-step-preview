@@ -47,6 +47,9 @@ if(Test-Path "$occt/include/opencascade"){
  $env:LIB="$env:LIB;$occt/lib"
  & $cl /nologo /utf-8 /EHsc /std:c++17 /O2 /MD /W3 /DUNICODE /D_UNICODE /DWNT "$PSScriptRoot/step_mesh.cpp" /Fo"$build/step_mesh.obj" /Fe"$build/step/step_mesh.exe" /link TKernel.lib TKMath.lib TKBRep.lib TKG2d.lib TKG3d.lib TKGeomBase.lib TKTopAlgo.lib TKMesh.lib TKDESTEP.lib TKXSBase.lib TKDE.lib TKXCAF.lib TKLCAF.lib TKCDF.lib
  if($LASTEXITCODE){throw 'step_mesh compile failed'}
- & "$PSScriptRoot/../../.venv/Scripts/python.exe" -I "$PSScriptRoot/stage_step.py" "$vc/bin/Hostx64/x64/dumpbin.exe"
+ # Runtime Visual C++ redistribuable : dossier de version le plus récent qui a un sous-dossier x64.
+ $redist=Get-ChildItem "$install/VC/Redist/MSVC" -Directory | Where-Object {$_.Name -match '^\d+(\.\d+)+$' -and (Test-Path "$($_.FullName)/x64")} | Sort-Object {[version]$_.Name} -Descending | Select-Object -First 1
+ if(-not $redist){throw 'Dossier Redist du runtime Visual C++ introuvable'}
+ & "$PSScriptRoot/../../.venv/Scripts/python.exe" -I "$PSScriptRoot/stage_step.py" "$vc/bin/Hostx64/x64/dumpbin.exe" "$($redist.FullName)/x64"
  if($LASTEXITCODE){throw 'step_mesh staging failed'}
 }

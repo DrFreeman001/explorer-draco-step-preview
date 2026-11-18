@@ -14,3 +14,4 @@ explorer-draco-step-preview est sous licence Apache-2.0 (voir `LICENSE`). Ce dé
 
 - Open CASCADE Technology 8.0.1 : LGPL-2.1 avec l'exception Open CASCADE. https://dev.opencascade.org
 - DLL dont OpenCascade dépend, paquets conda-forge : FreeImage, FreeType, Imath, libjpeg-turbo, libpng, LibRaw, libtiff, libwebp, zlib, OpenEXR, OpenJPEG, LERC, libdeflate, Zstandard, liblzma, Little CMS, OpenJPH. Chacune garde sa propre licence, fournie dans son paquet conda-forge ; elles n'ont pas été relevées une à une ici.
+- Runtime Visual C++ de Microsoft (`vcruntime140.dll`, `vcruntime140_1.dll`, `msvcp140.dll`, `vcomp140.dll`) : copié par `windows/preview/build.ps1` depuis le dossier Redist de Visual Studio, fichiers que Microsoft autorise à redistribuer avec une application (licence de Visual Studio, « Distributable Code »). Il évite d'installer le « Visual C++ Redistributable » sur le PC.
