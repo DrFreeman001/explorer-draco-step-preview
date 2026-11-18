@@ -120,3 +120,41 @@ def test_step_has_its_own_larger_size_limit(tmp_path, monkeypatch):
     monkeypatch.setattr(shell_preview.step_preview, 'MAX_INPUT', 50)
     with pytest.raises(ValueError, match='limit'):
         shell_preview.load_model(source)
+
+
+@pytest.mark.parametrize('key, facing', [
+    (1, (0, 0, 1)),    # dessus : on voit la face +Z
+    (2, (0, 0, -1)),   # dessous
+    (3, (0, -1, 0)),   # face : depuis -Y, comme les trancheurs
+    (4, (0, 1, 0)),    # arrière
+    (5, (-1, 0, 0)),   # gauche : depuis -X
+    (6, (1, 0, 0)),    # droite
+])
+def test_preset_views_face_the_expected_side(key, facing):
+    """Avec Z vertical, la vue n montre au spectateur le côté attendu du modèle."""
+    from explorer_preview.shell_preview import PRESET_VIEWS
+
+    yaw, pitch = PRESET_VIEWS[key]
+    point = np.array(facing, dtype=float)
+    # Même passage Z vertical → Y écran que le rendu (sample_triangles), puis la caméra.
+    upright = np.array([[point[0], point[2], -point[1]]])
+    toward_viewer = project(upright[None], yaw, pitch, 1.)[0, 0, 2]
+    assert toward_viewer == pytest.approx(1.)
+
+
+def test_number_keys_switch_views(qapp, monkeypatch):
+    from PySide6.QtCore import Qt
+    from PySide6.QtGui import QKeyEvent
+    from explorer_preview import shell_preview
+
+    widget = shell_preview.Preview.__new__(shell_preview.Preview)
+    monkeypatch.setattr(shell_preview.Preview, 'update', lambda self: None)
+    widget.yaw, widget.pitch, widget.zoom = 12., 34., 2.5
+
+    def press(key):
+        shell_preview.Preview.keyPressEvent(widget, QKeyEvent(QKeyEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier))
+
+    press(Qt.Key.Key_1)
+    assert (widget.yaw, widget.pitch, widget.zoom) == (0., 90., 2.5)  # le zoom choisi reste
+    press(Qt.Key.Key_0)
+    assert (widget.yaw, widget.pitch, widget.zoom) == shell_preview.DEFAULT_VIEW

@@ -27,9 +27,11 @@ def _french() -> bool:
 FRENCH = _french()
 TEXTS = {
     True: {'loading': 'Chargement…', 'simplified': 'Affichage simplifié · ',
-           'hint': 'Glisser : rotation · Molette : zoom · R : réinitialiser', 'triangles': 'triangles'},
+           'hint': 'Glisser : rotation · Molette : zoom · 1 dessus, 3 face, 5 gauche, 6 droite · 0 ou R : vue de départ',
+           'triangles': 'triangles'},
     False: {'loading': 'Loading…', 'simplified': 'Simplified drawing · ',
-            'hint': 'Drag: rotate · Wheel: zoom · R: reset', 'triangles': 'triangles'},
+            'hint': 'Drag: rotate · Wheel: zoom · 1 top, 3 front, 5 left, 6 right · 0 or R: starting view',
+            'triangles': 'triangles'},
 }
 TEXT = TEXTS[FRENCH]
 SIMPLIFIED = TEXT['simplified']
@@ -50,6 +52,10 @@ def describe(mesh, french: bool = FRENCH) -> str:
     return ' · '.join(parts)
 # Vue de trois quarts, légèrement par-dessus (lacet, tangage, zoom).
 DEFAULT_VIEW = (30., 20., 1.)
+# Vues des touches 0 à 6, comme dans Bambu Studio, OrcaSlicer et PrusaSlicer (lacet, tangage), Z vertical :
+# 0 trois quarts, 1 dessus, 2 dessous, 3 face (depuis -Y), 4 arrière, 5 gauche (depuis -X), 6 droite.
+PRESET_VIEWS = {0: DEFAULT_VIEW[:2], 1: (0., 90.), 2: (0., -90.), 3: (0., 0.), 4: (180., 0.), 5: (90., 0.),
+                6: (-90., 0.)}
 
 
 def load_model(path: Path):
@@ -255,8 +261,15 @@ class Preview(QWidget):
         return True
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key.Key_R:
+        key = event.key()
+        if key == Qt.Key.Key_R:
             self.yaw, self.pitch, self.zoom = DEFAULT_VIEW
+            self.update()
+        elif Qt.Key.Key_0 <= key <= Qt.Key.Key_6:
+            # Vue prédéfinie : le zoom reste celui choisi, sauf pour la vue de départ.
+            self.yaw, self.pitch = PRESET_VIEWS[key - Qt.Key.Key_0]
+            if key == Qt.Key.Key_0:
+                self.zoom = DEFAULT_VIEW[2]
             self.update()
         else:
             super().keyPressEvent(event)
