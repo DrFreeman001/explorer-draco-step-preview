@@ -1,5 +1,9 @@
 # Journal des versions
 
+## 0.3.0 — novembre 2026
+
+- Volet d'aperçu : vues prédéfinies aux touches 0 à 6, comme dans Bambu Studio, OrcaSlicer et PrusaSlicer (1 dessus, 2 dessous, 3 face, 4 arrière, 5 gauche, 6 droite, 0 ou R vue de départ).
+
 ## 0.2.2 — novembre 2026
 
 - Le runtime Visual C++ de Microsoft est inclus à côté du lecteur STEP : miniatures et aperçu des STEP marchent sur un PC où le « Visual C++ Redistributable » n'est pas installé.
